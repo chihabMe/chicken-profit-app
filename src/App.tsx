@@ -4,8 +4,8 @@ import {
   LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend, ComposedChart 
 } from 'recharts';
 import { 
-  Settings, TrendingUp, AlertTriangle, Activity, CheckCircle2, Calculator, CalendarDays, 
-  Database, Wheat, Target, Droplet, Syringe, Clock
+  TrendingUp, AlertTriangle, Activity, CheckCircle2, Calculator, CalendarDays, 
+  Database, Wheat, Target, Droplet, Syringe
 } from 'lucide-react';
 
 interface PriceData {
