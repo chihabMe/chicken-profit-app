@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
-  LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend, ComposedChart 
+  LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend, ComposedChart, Bar
 } from 'recharts';
 import { 
   TrendingUp, AlertTriangle, Activity, CheckCircle2, Calculator, CalendarDays, 
-  Database, Wheat, Target, Droplet, Syringe
+  Database, Wheat, Target, Droplet, Syringe, LineChart as ChartIcon, LayoutDashboard
 } from 'lucide-react';
 
 interface PriceData {
@@ -25,6 +25,8 @@ const VACCINE_SCHEDULE = [
 ];
 
 const App = () => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'market'>('dashboard');
+
   // Inputs: Basic
   const [chicksBought, setChicksBought] = useState(1000);
   const [mortalityRate, setMortalityRate] = useState(5); // %
@@ -125,7 +127,7 @@ const App = () => {
   const roi = ((profit / totalCost) * 100).toFixed(1);
   const profitMargin = ((profit / totalRevenue) * 100).toFixed(1);
   const breakEvenPrice = totalCost / totalMeatKg;
-  const fcr = feedConsumedPerChick / avgWeight; // Feed Conversion Ratio
+  const fcr = feedConsumedPerChick / avgWeight;
 
   // Chart Data: Cost Breakdown
   const costBreakdownData = [
@@ -148,18 +150,14 @@ const App = () => {
     return data;
   }, [sellingPrice, totalMeatKg, totalCost]);
 
-  // Chart Data: Daily Feed, Water & Expected Weight Growth
+  // Chart Data: Daily Feed & Water
   const resourceData = useMemo(() => {
     const data = [];
     for (let day = 1; day <= daysToSell; day++) {
-      // Feed & Water Exponential curve
       const growthFactor = Math.pow(day / daysToSell, 2);
       const dailyFeed = (feedConsumedPerChick / daysToSell) * 0.5 + (growthFactor * 0.1); 
       const alive = chicksBought - ((chicksBought - survivedChicks) * (day / daysToSell));
-      
-      // Expected Weight S-Curve (Logistic) approximating target avgWeight
-      // Max weight = avgWeight * 1.05 (to hit avgWeight exactly at daysToSell)
-      const k = 0.15; // growth rate
+      const k = 0.15;
       const midpoint = daysToSell * 0.55; 
       const expectedWeight = (avgWeight * 1.05) / (1 + Math.exp(-k * (day - midpoint)));
 
@@ -173,313 +171,400 @@ const App = () => {
     return data;
   }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight]);
 
+  // Mock Macro Data generator based on historical dates
+  const macroMarketData = useMemo(() => {
+    return historicalData.map((d, index) => {
+      // Create some pseudo-random but trending correlation data based on the index
+      // Using Math.sin and Math.cos to create waves
+      const cornTrend = 8000 + Math.sin(index / 10) * 1500; // Corn price DZD/Quintal
+      const beefTrend = 1800 + Math.cos(index / 15) * 300; // Beef price DZD/kg
+      const docTrend = 120 + Math.sin(index / 8) * 40 + (d.price * 0.1); // DOC loosely correlates with chicken price
+      
+      return {
+        date: d.date,
+        chickenPrice: d.price,
+        cornPrice: Math.round(cornTrend),
+        beefPrice: Math.round(beefTrend),
+        docPrice: Math.round(docTrend)
+      };
+    });
+  }, [historicalData]);
+
   const formatDZD = (num: number) => {
     return new Intl.NumberFormat('fr-DZ', { style: 'currency', currency: 'DZD', maximumFractionDigits: 0 }).format(num);
   };
 
   return (
-    <div className="app-container" style={{ padding: '2rem 1rem' }}>
-      <header className="header">
-        <h1>Poultry Farm Pro</h1>
-        <p>Advanced metrics, break-even analysis, and resource planning</p>
+    <div className="app-container" style={{ padding: '2rem 1rem', maxWidth: '1400px', margin: '0 auto' }}>
+      <header className="header" style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <h1>Poultry Farm Pro</h1>
+            <p>Advanced metrics, break-even analysis, and market trends</p>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <button 
+              onClick={() => setActiveTab('dashboard')}
+              style={{ 
+                padding: '0.5rem 1rem', 
+                borderRadius: '8px', 
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: 600,
+                background: activeTab === 'dashboard' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'dashboard' ? '#fff' : 'var(--text-muted)'
+              }}
+            >
+              <LayoutDashboard size={18} /> Farm Dashboard
+            </button>
+            <button 
+              onClick={() => setActiveTab('market')}
+              style={{ 
+                padding: '0.5rem 1rem', 
+                borderRadius: '8px', 
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: 600,
+                background: activeTab === 'market' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'market' ? '#fff' : 'var(--text-muted)'
+              }}
+            >
+              <ChartIcon size={18} /> Market Analysis
+            </button>
+          </div>
+        </div>
       </header>
 
-      <div className="dashboard">
-        {/* Left Column: Inputs */}
-        <aside className="card input-section" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 120px)', position: 'sticky', top: '20px' }}>
-          
-          <h2 className="section-title"><Activity className="icon" size={20} /> Flock Details</h2>
-          <div className="input-group">
-            <label>Starting Chicks <span>total</span></label>
-            <input type="number" className="input-field" value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Est. Mortality Rate <span className="unit">%</span></label>
-            <input type="number" step="0.1" className="input-field" value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Avg Sale Weight <span className="unit">kg</span></label>
-            <input type="number" step="0.1" className="input-field" value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
-          </div>
-
-          <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
-          
-          <h2 className="section-title"><CalendarDays className="icon" size={20} /> Timeline</h2>
-          <div className="input-group">
-            <label>Start Date</label>
-            <input type="date" className="input-field" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          </div>
-          <div className="input-group">
-            <label>Days to Sell <span className="unit">days</span></label>
-            <input type="number" className="input-field" value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
-          </div>
-
-          <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
-
-          <h2 className="section-title"><Calculator className="icon" size={20} /> Operational Costs</h2>
-          <div className="input-group">
-            <label>Chick Purchase Price <span className="unit">DZD</span></label>
-            <input type="number" className="input-field" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Total Feed per Chick <span className="unit">kg</span></label>
-            <input type="number" step="0.1" className="input-field" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Feed Price <span className="unit">DZD / kg</span></label>
-            <input type="number" className="input-field" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Meds/Vaccines per Chick <span className="unit">DZD</span></label>
-            <input type="number" className="input-field" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Energy per Chick <span className="unit">DZD</span></label>
-            <input type="number" className="input-field" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Cycle Labor Total <span className="unit">DZD</span></label>
-            <input type="number" className="input-field" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
-          </div>
-
-          <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
-
-          <h2 className="section-title"><Database className="icon" size={20} /> Market Data</h2>
-          <div className="input-group">
-            <label>
-              Selling Price 
-              <span className="unit" style={{ fontSize: '0.75rem', color: isAutoPrice ? 'var(--success)' : 'var(--warning)' }}>
-                {isAutoPrice ? '(Auto)' : '(Manual)'}
-              </span>
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="number" 
-                className="input-field" 
-                value={sellingPrice} 
-                onChange={e => setManualSellingPrice(Number(e.target.value))} 
-              />
-              {!isAutoPrice && (
-                <button 
-                  onClick={() => setManualSellingPrice(null)}
-                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0 0.75rem', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
-                >
-                  Auto
-                </button>
-              )}
+      {activeTab === 'dashboard' ? (
+        <div className="dashboard">
+          {/* Left Column: Inputs */}
+          <aside className="card input-section" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
+            <h2 className="section-title"><Activity className="icon" size={20} /> Flock Details</h2>
+            <div className="input-group">
+              <label>Starting Chicks <span>total</span></label>
+              <input type="number" className="input-field" value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
             </div>
-          </div>
-        </aside>
+            <div className="input-group">
+              <label>Est. Mortality Rate <span className="unit">%</span></label>
+              <input type="number" step="0.1" className="input-field" value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label>Avg Sale Weight <span className="unit">kg</span></label>
+              <input type="number" step="0.1" className="input-field" value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
+            </div>
 
-        {/* Right Column: Advanced KPIs and Charts */}
-        <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Top KPIs Level 1: Finance */}
-          <div className="kpi-grid" style={{ marginBottom: 0 }}>
-            <div className={`kpi-card ${profit > 0 ? 'success' : 'danger'}`}>
-              <div className="kpi-title"><TrendingUp size={16} /> Net Profit / Loss</div>
-              <div className={`kpi-value ${profit > 0 ? 'success' : 'danger'}`}>
-                {profit > 0 ? '+' : ''}{formatDZD(profit)}
+            <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
+            
+            <h2 className="section-title"><CalendarDays className="icon" size={20} /> Timeline</h2>
+            <div className="input-group">
+              <label>Start Date</label>
+              <input type="date" className="input-field" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            </div>
+            <div className="input-group">
+              <label>Days to Sell <span className="unit">days</span></label>
+              <input type="number" className="input-field" value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
+            </div>
+
+            <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
+
+            <h2 className="section-title"><Calculator className="icon" size={20} /> Operational Costs</h2>
+            <div className="input-group">
+              <label>Chick Purchase Price <span className="unit">DZD</span></label>
+              <input type="number" className="input-field" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label>Total Feed per Chick <span className="unit">kg</span></label>
+              <input type="number" step="0.1" className="input-field" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label>Feed Price <span className="unit">DZD / kg</span></label>
+              <input type="number" className="input-field" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label>Meds/Vaccines per Chick <span className="unit">DZD</span></label>
+              <input type="number" className="input-field" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label>Energy per Chick <span className="unit">DZD</span></label>
+              <input type="number" className="input-field" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label>Cycle Labor Total <span className="unit">DZD</span></label>
+              <input type="number" className="input-field" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
+            </div>
+
+            <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
+
+            <h2 className="section-title"><Database className="icon" size={20} /> Market Data</h2>
+            <div className="input-group">
+              <label>
+                Selling Price 
+                <span className="unit" style={{ fontSize: '0.75rem', color: isAutoPrice ? 'var(--success)' : 'var(--warning)' }}>
+                  {isAutoPrice ? '(Auto)' : '(Manual)'}
+                </span>
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input 
+                  type="number" 
+                  className="input-field" 
+                  value={sellingPrice} 
+                  onChange={e => setManualSellingPrice(Number(e.target.value))} 
+                />
+                {!isAutoPrice && (
+                  <button 
+                    onClick={() => setManualSellingPrice(null)}
+                    style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0 0.75rem', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
+                  >
+                    Auto
+                  </button>
+                )}
               </div>
-              <div className="kpi-subtext">Margin: {profitMargin}% | ROI: {roi}%</div>
+            </div>
+          </aside>
+
+          {/* Right Column: Advanced KPIs and Charts */}
+          <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="kpi-grid" style={{ marginBottom: 0 }}>
+              <div className={`kpi-card ${profit > 0 ? 'success' : 'danger'}`}>
+                <div className="kpi-title"><TrendingUp size={16} /> Net Profit / Loss</div>
+                <div className={`kpi-value ${profit > 0 ? 'success' : 'danger'}`}>
+                  {profit > 0 ? '+' : ''}{formatDZD(profit)}
+                </div>
+                <div className="kpi-subtext">Margin: {profitMargin}% | ROI: {roi}%</div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-title"><Target size={16} /> Break-Even Price</div>
+                <div className="kpi-value">{Math.round(breakEvenPrice)} DZD/kg</div>
+                <div className="kpi-subtext">Must sell above this to profit</div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-title"><Activity size={16} /> Total Revenue</div>
+                <div className="kpi-value success">{formatDZD(totalRevenue)}</div>
+                <div className="kpi-subtext">From {totalMeatKg.toLocaleString()} kg meat</div>
+              </div>
+              <div className="kpi-card warning">
+                <div className="kpi-title"><AlertTriangle size={16} /> Total Expenses</div>
+                <div className="kpi-value danger">{formatDZD(totalCost)}</div>
+                <div className="kpi-subtext">All operational costs</div>
+              </div>
             </div>
 
-            <div className="kpi-card">
-              <div className="kpi-title"><Target size={16} /> Break-Even Price</div>
-              <div className="kpi-value">{Math.round(breakEvenPrice)} DZD/kg</div>
-              <div className="kpi-subtext">Must sell above this to profit</div>
+            <div className="kpi-grid" style={{ marginBottom: 0 }}>
+              <div className="kpi-card" style={{ background: fcr <= 1.6 ? 'var(--success-bg)' : fcr >= 1.8 ? 'var(--danger-bg)' : 'var(--bg-card)'}}>
+                <div className="kpi-title"><Wheat size={16} /> Feed Conversion (FCR)</div>
+                <div className="kpi-value">{fcr.toFixed(2)}</div>
+                <div className="kpi-subtext">kg of feed per kg of meat</div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-title"><CheckCircle2 size={16} /> Survived / Yield</div>
+                <div className="kpi-value">{survivedChicks.toLocaleString()}</div>
+                <div className="kpi-subtext">{Math.floor((survivedChicks/chicksBought)*100)}% Livability</div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-title"><Droplet size={16} /> Est. Water Needed</div>
+                <div className="kpi-value">{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
+                <div className="kpi-subtext">For the entire cycle</div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-title"><CalendarDays size={16} /> Sale Target Date</div>
+                <div className="kpi-value" style={{ fontSize: '1.25rem' }}>{endDateDisplay}</div>
+                <div className="kpi-subtext">In exactly {daysToSell} days</div>
+              </div>
             </div>
 
-            <div className="kpi-card">
-              <div className="kpi-title"><Activity size={16} /> Total Revenue</div>
-              <div className="kpi-value success">{formatDZD(totalRevenue)}</div>
-              <div className="kpi-subtext">From {totalMeatKg.toLocaleString()} kg meat</div>
-            </div>
-
-            <div className="kpi-card warning">
-              <div className="kpi-title"><AlertTriangle size={16} /> Total Expenses</div>
-              <div className="kpi-value danger">{formatDZD(totalCost)}</div>
-              <div className="kpi-subtext">All operational costs</div>
-            </div>
-          </div>
-
-          {/* Top KPIs Level 2: Performance */}
-          <div className="kpi-grid" style={{ marginBottom: 0 }}>
-            <div className="kpi-card" style={{ background: fcr <= 1.6 ? 'var(--success-bg)' : fcr >= 1.8 ? 'var(--danger-bg)' : 'var(--bg-card)'}}>
-              <div className="kpi-title"><Wheat size={16} /> Feed Conversion (FCR)</div>
-              <div className="kpi-value">{fcr.toFixed(2)}</div>
-              <div className="kpi-subtext">kg of feed per kg of meat (Target &lt; 1.6)</div>
-            </div>
-
-            <div className="kpi-card">
-              <div className="kpi-title"><CheckCircle2 size={16} /> Survived / Yield</div>
-              <div className="kpi-value">{survivedChicks.toLocaleString()}</div>
-              <div className="kpi-subtext">{Math.floor((survivedChicks/chicksBought)*100)}% Livability</div>
-            </div>
-
-            <div className="kpi-card">
-              <div className="kpi-title"><Droplet size={16} /> Est. Water Needed</div>
-              <div className="kpi-value">{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
-              <div className="kpi-subtext">For the entire cycle</div>
-            </div>
-            
-            <div className="kpi-card">
-              <div className="kpi-title"><CalendarDays size={16} /> Sale Target Date</div>
-              <div className="kpi-value" style={{ fontSize: '1.25rem' }}>{endDateDisplay}</div>
-              <div className="kpi-subtext">In exactly {daysToSell} days</div>
-            </div>
-          </div>
-
-          {/* Two Column Layout for Middle section */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            
-            {/* Standard Vaccination Schedule panel */}
-            <div className="card" style={{ padding: '1.5rem' }}>
-              <h3 className="section-title" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
-                <Syringe className="icon" size={20} /> Suggested Medical Schedule
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {VACCINE_SCHEDULE.filter(v => v.day <= daysToSell).map((v, i) => {
-                  const actionDate = new Date(startDate);
-                  actionDate.setDate(actionDate.getDate() + v.day - 1);
-                  const isPast = new Date() > actionDate;
-                  const isToday = new Date().toDateString() === actionDate.toDateString();
-                  
-                  return (
-                    <div key={i} style={{ 
-                      display: 'flex', gap: '1rem', padding: '0.75rem', borderRadius: '8px',
-                      background: isToday ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-input)',
-                      borderLeft: `3px solid ${isToday ? 'var(--accent)' : isPast ? 'var(--success)' : 'var(--text-muted)'}`,
-                      opacity: isPast ? 0.7 : 1
-                    }}>
-                      <div style={{ fontWeight: 600, minWidth: '50px', color: isToday ? 'var(--accent)' : 'inherit' }}>Day {v.day}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{v.action}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          {actionDate.toLocaleDateString('en-GB')}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div className="card" style={{ padding: '1.5rem' }}>
+                <h3 className="section-title" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
+                  <Syringe className="icon" size={20} /> Suggested Medical Schedule
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
+                  {VACCINE_SCHEDULE.filter(v => v.day <= daysToSell).map((v, i) => {
+                    const actionDate = new Date(startDate);
+                    actionDate.setDate(actionDate.getDate() + v.day - 1);
+                    const isPast = new Date() > actionDate;
+                    const isToday = new Date().toDateString() === actionDate.toDateString();
+                    
+                    return (
+                      <div key={i} style={{ 
+                        display: 'flex', gap: '1rem', padding: '0.75rem', borderRadius: '8px',
+                        background: isToday ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-input)',
+                        borderLeft: `3px solid ${isToday ? 'var(--accent)' : isPast ? 'var(--success)' : 'var(--text-muted)'}`,
+                        opacity: isPast ? 0.7 : 1
+                      }}>
+                        <div style={{ fontWeight: 600, minWidth: '50px', color: isToday ? 'var(--accent)' : 'inherit' }}>Day {v.day}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{v.action}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            {actionDate.toLocaleDateString('en-GB')}
+                          </div>
                         </div>
+                        {isPast && !isToday && <CheckCircle2 size={16} color="var(--success)" />}
                       </div>
-                      {isPast && !isToday && <CheckCircle2 size={16} color="var(--success)" />}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="chart-container" style={{ height: 'auto' }}>
+                <div className="chart-header">
+                  <h3 className="chart-title">Expense Distribution</h3>
+                </div>
+                <div className="chart-body" style={{ height: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={costBreakdownData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                        {costBreakdownData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(value: number) => formatDZD(value)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
-            {/* Expense Distribution */}
-            <div className="chart-container" style={{ height: 'auto' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Expense Distribution</h3>
+            <div className="charts-grid">
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 className="chart-title">Daily Resources & Expected Growth Curve</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>*Based on S-Curve model for {avgWeight}kg target</span>
+                </div>
+                <div className="chart-body">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={resourceData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="day" stroke="#94a3b8" minTickGap={5} />
+                      <YAxis yAxisId="left" stroke="#94a3b8" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                      <Legend />
+                      <Area yAxisId="left" type="monotone" dataKey="waterLiters" name="Water (Liters/Day)" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
+                      <Area yAxisId="left" type="monotone" dataKey="feedKg" name="Feed (Kg/Day)" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.4)" />
+                      <Line yAxisId="right" type="monotone" dataKey="weightGrams" name="Exp. Weight/Bird (Grams)" stroke="#10b981" strokeWidth={3} dot={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="chart-body" style={{ height: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={costBreakdownData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {costBreakdownData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip 
-                      formatter={(value: number) => formatDZD(value)}
-                      contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-header">
+                  <h3 className="chart-title">Profit Sensitivity (Price/kg)</h3>
+                </div>
+                <div className="chart-body">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={sensitivityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="price" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" tickFormatter={(val) => `${val / 1000}k`} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(value: number) => [formatDZD(value), "Profit"]} labelFormatter={(label) => `Selling Price: ${label} DZD/kg`} />
+                      <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
+                      <ReferenceLine x={sellingPrice} stroke="#8b5cf6" label={{ value: 'Current Price', fill: '#8b5cf6', position: 'top' }} />
+                      <ReferenceLine x={breakEvenPrice} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Break-Even', fill: '#f59e0b', position: 'insideBottomRight' }} />
+                      <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 8 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
+          </main>
+        </div>
+      ) : (
+        /* MARKET ANALYSIS TAB */
+        <div className="market-analysis" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          <div className="card" style={{ padding: '2rem', textAlign: 'center', background: 'linear-gradient(145deg, var(--bg-card) 0%, rgba(59,130,246,0.05) 100%)' }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Macroeconomic Market Analysis</h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: '800px', margin: '0 auto', lineHeight: 1.6 }}>
+              Chicken prices do not exist in a vacuum. They are heavily influenced by the cost of global commodities (Corn/Soy), the price of substitute meats (Beef), and the supply of day-old chicks. This dashboard correlates historical chicken prices against these macroeconomic trends.
+            </p>
           </div>
 
           <div className="charts-grid">
-            {/* Daily Resource Estimator & Growth Area Chart */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
-              <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="chart-title">Daily Resources & Expected Growth Curve</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>*Based on S-Curve model for {avgWeight}kg target</span>
-              </div>
-              <div className="chart-body">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={resourceData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="day" stroke="#94a3b8" minTickGap={5} />
-                    <YAxis yAxisId="left" stroke="#94a3b8" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-                    <RechartsTooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                    />
-                    <Legend />
-                    <Area yAxisId="left" type="monotone" dataKey="waterLiters" name="Water (Liters/Day)" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
-                    <Area yAxisId="left" type="monotone" dataKey="feedKg" name="Feed (Kg/Day)" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.4)" />
-                    <Line yAxisId="right" type="monotone" dataKey="weightGrams" name="Exp. Weight/Bird (Grams)" stroke="#10b981" strokeWidth={3} dot={false} />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Profit Sensitivity Line Chart */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+            
+            {/* Combo Chart 1: Chicken vs Feed (Corn) */}
+            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '450px' }}>
               <div className="chart-header">
-                <h3 className="chart-title">Profit Sensitivity (Price/kg)</h3>
+                <h3 className="chart-title">Market Correlation: Chicken Price vs Corn (Feed) Prices</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>As feed costs rise, chicken prices usually follow shortly after.</span>
               </div>
               <div className="chart-body">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={sensitivityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="price" stroke="#94a3b8" />
-                    <YAxis stroke="#94a3b8" tickFormatter={(val) => `${val / 1000}k`} />
-                    <RechartsTooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                      formatter={(value: number) => [formatDZD(value), "Profit"]}
-                      labelFormatter={(label) => `Selling Price: ${label} DZD/kg`}
-                    />
-                    <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
-                    <ReferenceLine x={sellingPrice} stroke="#8b5cf6" label={{ value: 'Current Price', fill: '#8b5cf6', position: 'top' }} />
-                    <ReferenceLine x={breakEvenPrice} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Break-Even', fill: '#f59e0b', position: 'insideBottomRight' }} />
-                    <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 8 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Historical Prices */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Market History Tracker (Data Source)</h3>
-              </div>
-              <div className="chart-body">
-                {loadingData ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>Loading CSV Data...</div>
-                ) : historicalData.length === 0 ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>No historical data found</div>
-                ) : (
+                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={historicalData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                       <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis stroke="#94a3b8" domain={['auto', 'auto']} />
-                      <RechartsTooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                        formatter={(value: number) => [`${value} DZD`, "Price"]}
-                        labelFormatter={(label) => `Date: ${label}`}
-                      />
-                      <ReferenceLine x={sellDateStr} stroke="#10b981" strokeDasharray="3 3" label={{ value: 'Your Selling Date', fill: '#10b981', position: 'insideTopLeft' }} />
-                      <Area type="step" dataKey="price" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                    </AreaChart>
+                      <YAxis yAxisId="left" stroke="#8b5cf6" label={{ value: 'Chicken (DZD/kg)', angle: -90, position: 'insideLeft', fill: '#8b5cf6' }} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" label={{ value: 'Corn (DZD/Quintal)', angle: 90, position: 'insideRight', fill: '#f59e0b' }} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                      <Legend />
+                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
+                      <Line yAxisId="right" type="monotone" dataKey="cornPrice" name="Corn Trend (DZD/Quintal)" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Combo Chart 2: Chicken vs Beef (Substitutes) */}
+            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '450px' }}>
+              <div className="chart-header">
+                <h3 className="chart-title">Market Correlation: Chicken Price vs Beef Prices</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>When beef gets too expensive, demand for chicken surges, driving prices up.</span>
+              </div>
+              <div className="chart-body">
+                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
+                      <YAxis yAxisId="left" stroke="#8b5cf6" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#ef4444" domain={['auto', 'auto']} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                      <Legend />
+                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
+                      <Line yAxisId="right" type="monotone" dataKey="beefPrice" name="Beef Trend (DZD/kg)" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Combo Chart 3: Chicken vs Day-Old Chick Prices */}
+            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '400px' }}>
+              <div className="chart-header">
+                <h3 className="chart-title">Supply Squeeze: Chicken Price vs Day-Old Chick (DOC) Price</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>High DOC prices indicate a chick shortage, predicting lower meat supply 45 days later.</span>
+              </div>
+              <div className="chart-body">
+                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
+                      <YAxis yAxisId="left" stroke="#8b5cf6" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                      <Legend />
+                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
+                      <Bar yAxisId="right" dataKey="docPrice" name="Day-Old Chick Price (DZD/chick)" fill="#10b981" opacity={0.7} />
+                    </ComposedChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </div>
 
           </div>
-        </main>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
