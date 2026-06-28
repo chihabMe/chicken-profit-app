@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
+  Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
   LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend, ComposedChart, Bar
 } from 'recharts';
 import { 
