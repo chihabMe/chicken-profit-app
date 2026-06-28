@@ -1,3 +1,4 @@
+"use client";
 import { useState, useMemo, useEffect } from 'react';
 import { 
   Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
@@ -5,8 +6,11 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, AlertTriangle, Activity, CheckCircle2, Calculator, CalendarDays, 
-  Database, Wheat, Target, Droplet, Syringe, LineChart as ChartIcon, LayoutDashboard
+  Database, Wheat, Target, Droplet, Syringe, LineChart as ChartIcon, LayoutDashboard, Save, LogIn, LogOut, FolderOpen
 } from 'lucide-react';
+
+import { useSession, signIn, signOut } from "next-auth/react";
+import { saveSimulation, getSimulations } from "./actions";
 
 interface PriceData {
   date: string;
@@ -25,6 +29,60 @@ const VACCINE_SCHEDULE = [
 ];
 
 const App = () => {
+  const { data: session, status } = useSession();
+  const [savedSimulations, setSavedSimulations] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Custom Auth State
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  const handleLogin = async () => {
+    setAuthError('');
+    if (!authEmail || !authPassword) {
+      setAuthError("Enter email and password!");
+      return;
+    }
+    const res = await signIn('credentials', { 
+      email: authEmail, 
+      password: authPassword,
+      redirect: false
+    });
+    
+    if (res?.error) {
+      setAuthError("Invalid email or password");
+    }
+  };
+
+  const [showSettings, setShowSettings] = useState(false);
+
+  const handleInviteUser = async () => {
+    const email = prompt("Enter the email of the user to invite:");
+    if (!email) return;
+    const res = await fetch('/api/users/invite', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok) alert(data.message);
+    else alert(data.error);
+  };
+
+  const handleChangePassword = async () => {
+    const newPassword = prompt("Enter your new password (min 6 characters):");
+    if (!newPassword) return;
+    const res = await fetch('/api/users/change-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ newPassword })
+    });
+    if (res.ok) alert("Password changed successfully!");
+    else alert("Failed to change password.");
+  };
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'market'>('dashboard');
 
   // Inputs: Basic
@@ -45,6 +103,53 @@ const App = () => {
   // Historical Data State
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+
+  // Load Saved Simulations
+  useEffect(() => {
+    if (session) {
+      getSimulations().then(setSavedSimulations).catch(console.error);
+    }
+  }, [session]);
+
+  const handleSaveScenario = async () => {
+    if (!session) return;
+    const simName = prompt("Enter a name for this scenario (e.g. Summer Batch 2026):");
+    if (!simName) return;
+
+    setIsSaving(true);
+    const data = {
+      chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
+      chickCost, feedConsumedPerChick, feedPricePerKg, medicationCost, energyCost, laborCostCycle
+    };
+
+    try {
+      await saveSimulation(simName, data);
+      const updated = await getSimulations();
+      setSavedSimulations(updated);
+      alert("Scenario saved successfully!");
+    } catch (err) {
+      alert("Failed to save scenario.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLoadScenario = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!e.target.value) return;
+    const simData = JSON.parse(e.target.value);
+    
+    setChicksBought(simData.chicksBought ?? 1000);
+    setMortalityRate(simData.mortalityRate ?? 5);
+    setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
+    setDaysToSell(simData.daysToSell ?? 45);
+    setAvgWeight(simData.avgWeight ?? 2.5);
+    setChickCost(simData.chickCost ?? 150);
+    setFeedConsumedPerChick(simData.feedConsumedPerChick ?? 3.8);
+    setFeedPricePerKg(simData.feedPricePerKg ?? 80);
+    setMedicationCost(simData.medicationCost ?? 15);
+    setEnergyCost(simData.energyCost ?? 20);
+    setLaborCostCycle(simData.laborCostCycle ?? 30000);
+  };
 
   // Dates calculation
   const sellDateObj = useMemo(() => {
@@ -129,7 +234,7 @@ const App = () => {
   const breakEvenPrice = totalCost / totalMeatKg;
   const fcr = feedConsumedPerChick / avgWeight;
 
-  // Chart Data: Cost Breakdown
+  // Chart Data
   const costBreakdownData = [
     { name: 'Chicks', value: totalChickCost },
     { name: 'Feed', value: feedCostTotal },
@@ -138,7 +243,6 @@ const App = () => {
     { name: 'Labor', value: laborCostCycle },
   ];
 
-  // Chart Data: Profit Sensitivity
   const sensitivityData = useMemo(() => {
     const data = [];
     const minPrice = Math.max(50, sellingPrice - 80);
@@ -150,7 +254,6 @@ const App = () => {
     return data;
   }, [sellingPrice, totalMeatKg, totalCost]);
 
-  // Chart Data: Daily Feed & Water
   const resourceData = useMemo(() => {
     const data = [];
     for (let day = 1; day <= daysToSell; day++) {
@@ -171,14 +274,11 @@ const App = () => {
     return data;
   }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight]);
 
-  // Mock Macro Data generator based on historical dates
   const macroMarketData = useMemo(() => {
     return historicalData.map((d, index) => {
-      // Create some pseudo-random but trending correlation data based on the index
-      // Using Math.sin and Math.cos to create waves
-      const cornTrend = 8000 + Math.sin(index / 10) * 1500; // Corn price DZD/Quintal
-      const beefTrend = 1800 + Math.cos(index / 15) * 300; // Beef price DZD/kg
-      const docTrend = 120 + Math.sin(index / 8) * 40 + (d.price * 0.1); // DOC loosely correlates with chicken price
+      const cornTrend = 8000 + Math.sin(index / 10) * 1500;
+      const beefTrend = 1800 + Math.cos(index / 15) * 300;
+      const docTrend = 120 + Math.sin(index / 8) * 40 + (d.price * 0.1); 
       
       return {
         date: d.date,
@@ -194,27 +294,93 @@ const App = () => {
     return new Intl.NumberFormat('fr-DZ', { style: 'currency', currency: 'DZD', maximumFractionDigits: 0 }).format(num);
   };
 
+  if (status === "loading") {
+    return <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center', color:'var(--text-muted)'}}>Checking authentication...</div>;
+  }
+
+  if (!session) {
+    return (
+      <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center', background:'var(--bg-app)'}}>
+        <div className="card" style={{padding:'2.5rem', width:'400px', display:'flex', flexDirection:'column', gap:'1rem', boxShadow: '0 20px 40px rgba(0,0,0,0.5)'}}>
+          <div style={{textAlign:'center', marginBottom:'1rem'}}>
+            <h2 style={{color:'var(--text-primary)', margin:0}}>Poultry Farm Pro</h2>
+            <p style={{color:'var(--text-muted)', fontSize:'0.9rem', marginTop:'0.5rem'}}>Private access only. Please log in.</p>
+          </div>
+          {authError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '0.5rem', borderRadius: '4px', textAlign: 'center', fontSize: '0.9rem' }}>{authError}</div>}
+          <input type="email" placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} style={{ padding: '0.8rem', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'white', borderRadius: '6px' }} />
+          <input type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} style={{ padding: '0.8rem', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'white', borderRadius: '6px' }} />
+          <button onClick={handleLogin} style={{ padding: '0.8rem', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, marginTop:'0.5rem' }}>Sign In</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container" style={{ padding: '2rem 1rem', maxWidth: '1400px', margin: '0 auto' }}>
-      <header className="header" style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <h1>Poultry Farm Pro</h1>
-            <p>Advanced metrics, break-even analysis, and market trends</p>
-          </div>
+      <header className="header" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1>Poultry Farm Pro</h1>
+          <p>Advanced metrics, break-even analysis, and market trends</p>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
           
+          {/* Authentication & Cloud Save Bar */}
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)', alignItems: 'center' }}>
+            <>
+                <div style={{ padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                  <img src={session.user?.image || ''} alt="avatar" style={{width: 24, height: 24, borderRadius: '50%'}} />
+                  <span style={{ fontSize: '0.9rem' }}>{session.user?.name}</span>
+                </div>
+                
+                <div style={{ borderLeft: '1px solid var(--border)', height: '20px', margin: '0 0.5rem' }}></div>
+                
+                <select 
+                  onChange={handleLoadScenario} 
+                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.4rem', borderRadius: '6px', outline: 'none' }}
+                >
+                  <option value="">📁 Load Scenario...</option>
+                  {savedSimulations.map(sim => (
+                    <option key={sim.id} value={JSON.stringify(sim.data)}>
+                      {sim.name} ({new Date(sim.createdAt).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+
+                <button 
+                  onClick={handleSaveScenario}
+                  disabled={isSaving}
+                  className="kpi-value success"
+                  style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem', background: 'var(--success-bg)', border: '1px solid var(--success)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                >
+                  <Save size={14} /> {isSaving ? 'Saving...' : 'Save'}
+                </button>
+
+                <div style={{ position: 'relative' }}>
+                  <button 
+                    onClick={() => setShowSettings(!showSettings)}
+                    style={{ padding: '0.4rem 0.8rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    ⚙️ Settings
+                  </button>
+                  {showSettings && (
+                    <div style={{ position: 'absolute', top: '120%', right: 0, background: 'var(--bg-card)', padding: '0.5rem', border: '1px solid var(--border)', borderRadius: '8px', zIndex: 100, width: '180px', display: 'flex', flexDirection: 'column', gap: '0.25rem', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                      <button onClick={handleInviteUser} style={{ padding: '0.5rem', background: 'transparent', color: 'var(--text-primary)', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: '4px' }}>➕ Invite User</button>
+                      <button onClick={handleChangePassword} style={{ padding: '0.5rem', background: 'transparent', color: 'var(--text-primary)', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: '4px' }}>🔑 Change Password</button>
+                      <div style={{ borderTop: '1px solid var(--border)', margin: '0.25rem 0' }}></div>
+                      <button onClick={() => signOut()} style={{ padding: '0.5rem', background: 'transparent', color: 'var(--danger)', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: '4px' }}>🚪 Logout</button>
+                    </div>
+                  )}
+                </div>
+              </>
+          </div>
+
+          {/* Navigation Tabs */}
           <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
             <button 
               onClick={() => setActiveTab('dashboard')}
               style={{ 
-                padding: '0.5rem 1rem', 
-                borderRadius: '8px', 
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontWeight: 600,
+                padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600,
                 background: activeTab === 'dashboard' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'dashboard' ? '#fff' : 'var(--text-muted)'
               }}
@@ -224,14 +390,7 @@ const App = () => {
             <button 
               onClick={() => setActiveTab('market')}
               style={{ 
-                padding: '0.5rem 1rem', 
-                borderRadius: '8px', 
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontWeight: 600,
+                padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600,
                 background: activeTab === 'market' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'market' ? '#fff' : 'var(--text-muted)'
               }}
