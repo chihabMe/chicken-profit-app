@@ -382,7 +382,7 @@ const App = () => {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {costBreakdownData.map((entry, index) => (
+                      {costBreakdownData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
