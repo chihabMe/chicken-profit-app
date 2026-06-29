@@ -14,12 +14,17 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log("AUTHORIZE CALLED WITH:", credentials?.email);
         if (!credentials?.email || !credentials?.password) return null;
         
-        const user = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1);
+        const cleanEmail = credentials.email.toLowerCase().trim();
+        const user = await db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
+        
+        console.log("DB USER FOUND:", user.length > 0);
         if (user.length === 0) return null;
         
         const isPasswordValid = await bcrypt.compare(credentials.password, user[0].password);
+        console.log("PASSWORD VALID:", isPasswordValid);
         if (!isPasswordValid) return null;
         
         return { id: user[0].id.toString(), email: user[0].email };

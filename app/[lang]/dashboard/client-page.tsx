@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { saveSimulation, getSimulations } from "./actions";
+import { saveSimulation, getSimulations, createFlock, getFlocks, logFlockDaily, getFlockLogs } from "../../actions";
+import { useRouter } from "next/navigation";
 
 interface PriceData {
   date: string;
@@ -28,8 +29,16 @@ const VACCINE_SCHEDULE = [
   { day: 35, action: 'Withdrawal of all medications/antibiotics' }
 ];
 
-const App = () => {
+const App = ({ dict, lang }: { dict: any, lang: string }) => {
+  const router = useRouter();
   const { data: session, status } = useSession();
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value;
+    localStorage.setItem('preferredLang', newLang);
+    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000`;
+    router.push(`/${newLang}`);
+  };
   const [savedSimulations, setSavedSimulations] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -83,7 +92,52 @@ const App = () => {
     else alert("Failed to change password.");
   };
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'market'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'market' | 'logger'>('dashboard');
+
+  // Flock Logger State
+  const [flocks, setFlocks] = useState<any[]>([]);
+  const [activeFlockId, setActiveFlockId] = useState<number | null>(null);
+  const [flockLogs, setFlockLogs] = useState<any[]>([]);
+
+  const [newFlockName, setNewFlockName] = useState('');
+  const [newFlockChicks, setNewFlockChicks] = useState(1000);
+  const [newFlockDate, setNewFlockDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const [logDay, setLogDay] = useState(1);
+  const [logMortality, setLogMortality] = useState(0);
+  const [logFeed, setLogFeed] = useState('0');
+  const [logNotes, setLogNotes] = useState('');
+
+  useEffect(() => {
+    if (session && activeTab === 'logger') {
+      getFlocks().then(setFlocks);
+    }
+  }, [session, activeTab]);
+
+  useEffect(() => {
+    if (activeFlockId) {
+      getFlockLogs(activeFlockId).then(setFlockLogs);
+    }
+  }, [activeFlockId]);
+
+  const handleCreateFlock = async () => {
+    if (!newFlockName) return alert("Flock name required");
+    await createFlock(newFlockName, newFlockChicks, newFlockDate);
+    const updated = await getFlocks();
+    setFlocks(updated);
+    setNewFlockName('');
+  };
+
+  const handleLogDaily = async () => {
+    if (!activeFlockId) return alert("Select a flock first");
+    await logFlockDaily(activeFlockId, logDay, logMortality, logFeed, logNotes);
+    const updatedLogs = await getFlockLogs(activeFlockId);
+    setFlockLogs(updatedLogs);
+    setLogDay(logDay + 1);
+    setLogMortality(0);
+    setLogFeed('0');
+    setLogNotes('');
+  };
 
   // Inputs: Basic
   const [chicksBought, setChicksBought] = useState(1000);
@@ -274,135 +328,55 @@ const App = () => {
     return data;
   }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight]);
 
-  const macroMarketData = useMemo(() => {
-    return historicalData.map((d, index) => {
-      const cornTrend = 8000 + Math.sin(index / 10) * 1500;
-      const beefTrend = 1800 + Math.cos(index / 15) * 300;
-      const docTrend = 120 + Math.sin(index / 8) * 40 + (d.price * 0.1); 
-      
-      return {
-        date: d.date,
-        chickenPrice: d.price,
-        cornPrice: Math.round(cornTrend),
-        beefPrice: Math.round(beefTrend),
-        docPrice: Math.round(docTrend)
-      };
-    });
-  }, [historicalData]);
+  const [macroMarketData, setMacroMarketData] = useState<any[]>([]);
+  const [marketRange, setMarketRange] = useState(6);
 
+  useEffect(() => {
+    if (activeTab === 'market') {
+      setLoadingData(true);
+      fetch(`/api/market?months=${marketRange}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) setMacroMarketData(data);
+          setLoadingData(false);
+        })
+        .catch(() => setLoadingData(false));
+    }
+  }, [activeTab, marketRange]);
   const formatDZD = (num: number) => {
     return new Intl.NumberFormat('fr-DZ', { style: 'currency', currency: 'DZD', maximumFractionDigits: 0 }).format(num);
   };
 
   if (status === "loading") {
-    return <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center', color:'var(--text-muted)'}}>Checking authentication...</div>;
-  }
-
-  if (!session) {
-    return (
-      <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center', background:'var(--bg-app)'}}>
-        <div className="card" style={{padding:'2.5rem', width:'400px', display:'flex', flexDirection:'column', gap:'1rem', boxShadow: '0 20px 40px rgba(0,0,0,0.5)'}}>
-          <div style={{textAlign:'center', marginBottom:'1rem'}}>
-            <h2 style={{color:'var(--text-primary)', margin:0}}>Poultry Farm Pro</h2>
-            <p style={{color:'var(--text-muted)', fontSize:'0.9rem', marginTop:'0.5rem'}}>Private access only. Please log in.</p>
-          </div>
-          {authError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '0.5rem', borderRadius: '4px', textAlign: 'center', fontSize: '0.9rem' }}>{authError}</div>}
-          <input type="email" placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} style={{ padding: '0.8rem', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'white', borderRadius: '6px' }} />
-          <input type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} style={{ padding: '0.8rem', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'white', borderRadius: '6px' }} />
-          <button onClick={handleLogin} style={{ padding: '0.8rem', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, marginTop:'0.5rem' }}>Sign In</button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="app-container" style={{ padding: '2rem 1rem', maxWidth: '1400px', margin: '0 auto' }}>
-      <header className="header" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h1>Poultry Farm Pro</h1>
-          <p>Advanced metrics, break-even analysis, and market trends</p>
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
-          
-          {/* Authentication & Cloud Save Bar */}
-          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)', alignItems: 'center' }}>
-            <>
-                <div style={{ padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
-                  <img src={session.user?.image || ''} alt="avatar" style={{width: 24, height: 24, borderRadius: '50%'}} />
-                  <span style={{ fontSize: '0.9rem' }}>{session.user?.name}</span>
-                </div>
-                
-                <div style={{ borderLeft: '1px solid var(--border)', height: '20px', margin: '0 0.5rem' }}></div>
-                
-                <select 
-                  onChange={handleLoadScenario} 
-                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.4rem', borderRadius: '6px', outline: 'none' }}
-                >
-                  <option value="">📁 Load Scenario...</option>
-                  {savedSimulations.map(sim => (
-                    <option key={sim.id} value={JSON.stringify(sim.data)}>
-                      {sim.name} ({new Date(sim.createdAt).toLocaleDateString()})
-                    </option>
-                  ))}
-                </select>
+    <>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', background: 'var(--bg-card)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+      <select 
+        onChange={handleLoadScenario} 
+        style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.6rem', borderRadius: '6px', outline: 'none', flex: 1 }}
+      >
+        <option value="">📁 Load Saved Scenario...</option>
+        {savedSimulations.map(sim => (
+          <option key={sim.id} value={JSON.stringify(sim.data)}>
+            {sim.name} ({new Date(sim.createdAt).toLocaleDateString()})
+          </option>
+        ))}
+      </select>
 
-                <button 
-                  onClick={handleSaveScenario}
-                  disabled={isSaving}
-                  className="kpi-value success"
-                  style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem', background: 'var(--success-bg)', border: '1px solid var(--success)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                >
-                  <Save size={14} /> {isSaving ? 'Saving...' : 'Save'}
-                </button>
-
-                <div style={{ position: 'relative' }}>
-                  <button 
-                    onClick={() => setShowSettings(!showSettings)}
-                    style={{ padding: '0.4rem 0.8rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                  >
-                    ⚙️ Settings
-                  </button>
-                  {showSettings && (
-                    <div style={{ position: 'absolute', top: '120%', right: 0, background: 'var(--bg-card)', padding: '0.5rem', border: '1px solid var(--border)', borderRadius: '8px', zIndex: 100, width: '180px', display: 'flex', flexDirection: 'column', gap: '0.25rem', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-                      <button onClick={handleInviteUser} style={{ padding: '0.5rem', background: 'transparent', color: 'var(--text-primary)', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: '4px' }}>➕ Invite User</button>
-                      <button onClick={handleChangePassword} style={{ padding: '0.5rem', background: 'transparent', color: 'var(--text-primary)', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: '4px' }}>🔑 Change Password</button>
-                      <div style={{ borderTop: '1px solid var(--border)', margin: '0.25rem 0' }}></div>
-                      <button onClick={() => signOut()} style={{ padding: '0.5rem', background: 'transparent', color: 'var(--danger)', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: '4px' }}>🚪 Logout</button>
-                    </div>
-                  )}
-                </div>
-              </>
-          </div>
-
-          {/* Navigation Tabs */}
-          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-            <button 
-              onClick={() => setActiveTab('dashboard')}
-              style={{ 
-                padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600,
-                background: activeTab === 'dashboard' ? 'var(--accent)' : 'transparent',
-                color: activeTab === 'dashboard' ? '#fff' : 'var(--text-muted)'
-              }}
-            >
-              <LayoutDashboard size={18} /> Farm Dashboard
-            </button>
-            <button 
-              onClick={() => setActiveTab('market')}
-              style={{ 
-                padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600,
-                background: activeTab === 'market' ? 'var(--accent)' : 'transparent',
-                color: activeTab === 'market' ? '#fff' : 'var(--text-muted)'
-              }}
-            >
-              <ChartIcon size={18} /> Market Analysis
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {activeTab === 'dashboard' ? (
-        <div className="dashboard">
+      <button 
+        onClick={handleSaveScenario}
+        disabled={isSaving}
+        className="btn"
+        style={{ background: 'var(--success-bg)', borderColor: 'var(--success)', color: 'var(--success)' }}
+      >
+        <Save size={18} /> {isSaving ? 'Saving...' : 'Save Current Scenario'}
+      </button>
+    </div>
+    
+    <div className="dashboard">
           {/* Left Column: Inputs */}
           <aside className="card input-section" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
             <h2 className="section-title"><Activity className="icon" size={20} /> Flock Details</h2>
@@ -636,95 +610,7 @@ const App = () => {
             </div>
           </main>
         </div>
-      ) : (
-        /* MARKET ANALYSIS TAB */
-        <div className="market-analysis" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          <div className="card" style={{ padding: '2rem', textAlign: 'center', background: 'linear-gradient(145deg, var(--bg-card) 0%, rgba(59,130,246,0.05) 100%)' }}>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Macroeconomic Market Analysis</h2>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '800px', margin: '0 auto', lineHeight: 1.6 }}>
-              Chicken prices do not exist in a vacuum. They are heavily influenced by the cost of global commodities (Corn/Soy), the price of substitute meats (Beef), and the supply of day-old chicks. This dashboard correlates historical chicken prices against these macroeconomic trends.
-            </p>
-          </div>
-
-          <div className="charts-grid">
-            
-            {/* Combo Chart 1: Chicken vs Feed (Corn) */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '450px' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Market Correlation: Chicken Price vs Corn (Feed) Prices</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>As feed costs rise, chicken prices usually follow shortly after.</span>
-              </div>
-              <div className="chart-body">
-                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis yAxisId="left" stroke="#8b5cf6" label={{ value: 'Chicken (DZD/kg)', angle: -90, position: 'insideLeft', fill: '#8b5cf6' }} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" label={{ value: 'Corn (DZD/Quintal)', angle: 90, position: 'insideRight', fill: '#f59e0b' }} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                      <Line yAxisId="right" type="monotone" dataKey="cornPrice" name="Corn Trend (DZD/Quintal)" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* Combo Chart 2: Chicken vs Beef (Substitutes) */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '450px' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Market Correlation: Chicken Price vs Beef Prices</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>When beef gets too expensive, demand for chicken surges, driving prices up.</span>
-              </div>
-              <div className="chart-body">
-                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis yAxisId="left" stroke="#8b5cf6" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#ef4444" domain={['auto', 'auto']} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                      <Line yAxisId="right" type="monotone" dataKey="beefPrice" name="Beef Trend (DZD/kg)" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* Combo Chart 3: Chicken vs Day-Old Chick Prices */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '400px' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Supply Squeeze: Chicken Price vs Day-Old Chick (DOC) Price</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>High DOC prices indicate a chick shortage, predicting lower meat supply 45 days later.</span>
-              </div>
-              <div className="chart-body">
-                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis yAxisId="left" stroke="#8b5cf6" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                      <Bar yAxisId="right" dataKey="docPrice" name="Day-Old Chick Price (DZD/chick)" fill="#10b981" opacity={0.7} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 
