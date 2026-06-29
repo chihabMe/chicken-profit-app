@@ -9,6 +9,11 @@ import { getDictionary } from '../getDictionary';
 export const metadata = {
   title: 'Poultry Farm Pro',
   description: 'Advanced metrics, break-even analysis, and market trends',
+  manifest: '/manifest.json',
+};
+
+export const viewport = {
+  themeColor: '#1e293b',
 };
 
 export default async function RootLayout({ 

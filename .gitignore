@@ -28,3 +28,8 @@ dist-ssr
 .next
 .env
 .env.*
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/swe-worker-*.js
