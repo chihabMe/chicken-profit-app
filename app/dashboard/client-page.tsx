@@ -140,6 +140,7 @@ const App = () => {
   const [avgWeight, setAvgWeight] = useState(2.5); // kg
 
   // Inputs: Costs
+  const [inputMode, setInputMode] = useState<'per-chick' | 'total'>('per-chick');
   const [chickCost, setChickCost] = useState(150); // DZD
   const [feedConsumedPerChick, setFeedConsumedPerChick] = useState(3.8); // kg
   const [feedPricePerKg, setFeedPricePerKg] = useState(80); // DZD
@@ -165,7 +166,7 @@ const App = () => {
 
     setIsSaving(true);
     const data = {
-      chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
+      inputMode, chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
       chickCost, feedConsumedPerChick, feedPricePerKg, medicationCost, energyCost, laborCostCycle
     };
 
@@ -186,6 +187,7 @@ const App = () => {
     const simData = JSON.parse(e.target.value);
     
     setChicksBought(simData.chicksBought ?? 1000);
+    setInputMode(simData.inputMode ?? 'per-chick');
     setMortalityRate(simData.mortalityRate ?? 5);
     setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
     setDaysToSell(simData.daysToSell ?? 45);
@@ -264,11 +266,16 @@ const App = () => {
   const totalMeatKg = useMemo(() => survivedChicks * avgWeight, [survivedChicks, avgWeight]);
   
   // Cost breakdown
-  const totalChickCost = chicksBought * chickCost;
-  const feedCostTotal = (survivedChicks * feedConsumedPerChick * feedPricePerKg) + 
-                        ((chicksBought - survivedChicks) * (feedConsumedPerChick / 2) * feedPricePerKg);
-  const totalMedsCost = chicksBought * medicationCost;
-  const totalEnergyCost = chicksBought * energyCost;
+  const totalChickCost = inputMode === 'per-chick' ? chicksBought * chickCost : chickCost;
+  
+  const totalFeedKg = inputMode === 'per-chick' 
+    ? (survivedChicks * feedConsumedPerChick) + ((chicksBought - survivedChicks) * (feedConsumedPerChick / 2))
+    : feedConsumedPerChick;
+    
+  const feedCostTotal = totalFeedKg * feedPricePerKg;
+  
+  const totalMedsCost = inputMode === 'per-chick' ? chicksBought * medicationCost : medicationCost;
+  const totalEnergyCost = inputMode === 'per-chick' ? chicksBought * energyCost : energyCost;
   
   const totalCost = totalChickCost + feedCostTotal + totalMedsCost + totalEnergyCost + laborCostCycle;
   
@@ -279,7 +286,7 @@ const App = () => {
   const roi = ((profit / totalCost) * 100).toFixed(1);
   const profitMargin = ((profit / totalRevenue) * 100).toFixed(1);
   const breakEvenPrice = totalCost / totalMeatKg;
-  const fcr = feedConsumedPerChick / avgWeight;
+  const fcr = totalFeedKg / totalMeatKg;
 
   const handlePrint = () => {
     window.print();
@@ -293,11 +300,12 @@ const App = () => {
       ["Start Date", startDate],
       ["Days to Sell", daysToSell],
       ["Avg Sale Weight (kg)", avgWeight],
-      ["Chick Purchase Price (DZD)", chickCost],
-      ["Total Feed per Chick (kg)", feedConsumedPerChick],
+      ["Input Mode", inputMode === 'per-chick' ? 'Per Chick' : 'Total Flock'],
+      [`Chick Purchase Price (DZD ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, chickCost],
+      [`Feed Consumed (kg ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, feedConsumedPerChick],
       ["Feed Price (DZD / kg)", feedPricePerKg],
-      ["Meds/Vaccines per Chick (DZD)", medicationCost],
-      ["Energy per Chick (DZD)", energyCost],
+      [`Meds/Vaccines (DZD ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, medicationCost],
+      [`Energy (DZD ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, energyCost],
       ["Cycle Labor Total (DZD)", laborCostCycle],
       ["", ""],
       ["Metric", "Value"],
@@ -346,9 +354,15 @@ const App = () => {
 
   const resourceData = useMemo(() => {
     const data = [];
+    
+    // Determine the average feed per chick assuming normal growth pattern
+    const feedPerChickBasis = inputMode === 'per-chick' 
+      ? feedConsumedPerChick 
+      : feedConsumedPerChick / (survivedChicks + (chicksBought - survivedChicks) * 0.5);
+
     for (let day = 1; day <= daysToSell; day++) {
       const growthFactor = Math.pow(day / daysToSell, 2);
-      const dailyFeed = (feedConsumedPerChick / daysToSell) * 0.5 + (growthFactor * 0.1); 
+      const dailyFeed = (feedPerChickBasis / daysToSell) * 0.5 + (growthFactor * 0.1); 
       const alive = chicksBought - ((chicksBought - survivedChicks) * (day / daysToSell));
       const k = 0.15;
       const midpoint = daysToSell * 0.55; 
@@ -362,7 +376,7 @@ const App = () => {
       });
     }
     return data;
-  }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight]);
+  }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight, inputMode]);
 
   const [macroMarketData, setMacroMarketData] = useState<any[]>([]);
   const [marketRange, setMarketRange] = useState(6);
@@ -455,13 +469,30 @@ const App = () => {
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
 
-            <h2 className="section-title"><Calculator className="icon" size={20} /> Operational Costs</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 className="section-title" style={{ marginBottom: 0 }}><Calculator className="icon" size={20} /> Costs</h2>
+              <div style={{ display: 'flex', background: 'var(--bg-input)', borderRadius: '8px', padding: '4px' }}>
+                <button 
+                  onClick={() => setInputMode('per-chick')}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: inputMode === 'per-chick' ? 'var(--accent)' : 'transparent', color: inputMode === 'per-chick' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: '0.2s' }}
+                >
+                  Per Chick
+                </button>
+                <button 
+                  onClick={() => setInputMode('total')}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: inputMode === 'total' ? 'var(--accent)' : 'transparent', color: inputMode === 'total' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: '0.2s' }}
+                >
+                  Total Flock
+                </button>
+              </div>
+            </div>
+            
             <div className="input-group">
-              <label>Chick Purchase Price <span className="unit">DZD</span></label>
+              <label>Chick Purchase {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
               <input type="number" className="input-field" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
             </div>
             <div className="input-group">
-              <label>Total Feed per Chick <span className="unit">kg</span></label>
+              <label>Feed Consumed {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">kg</span></label>
               <input type="number" step="0.1" className="input-field" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
             </div>
             <div className="input-group">
@@ -469,15 +500,15 @@ const App = () => {
               <input type="number" className="input-field" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
             </div>
             <div className="input-group">
-              <label>Meds/Vaccines per Chick <span className="unit">DZD</span></label>
+              <label>Meds/Vaccines {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
               <input type="number" className="input-field" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
             </div>
             <div className="input-group">
-              <label>Energy per Chick <span className="unit">DZD</span></label>
+              <label>Energy {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
               <input type="number" className="input-field" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
             </div>
             <div className="input-group">
-              <label>Cycle Labor Total <span className="unit">DZD</span></label>
+              <label>Cycle Labor (Total) <span className="unit">DZD</span></label>
               <input type="number" className="input-field" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
             </div>
 
