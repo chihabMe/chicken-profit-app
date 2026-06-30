@@ -2,24 +2,14 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, TrendingUp, Database } from 'lucide-react';
+import { LayoutDashboard, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
-export function Header({ dict, lang }: { dict: any, lang: string }) {
+export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
   const [showSettings, setShowSettings] = useState(false);
-
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLang = e.target.value;
-    localStorage.setItem('preferredLang', newLang);
-    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000`;
-    
-    // Replace current language in pathname
-    const newPath = pathname.replace(`/${lang}`, `/${newLang}`);
-    router.push(newPath || `/${newLang}`);
-  };
 
   const handleInviteUser = async () => {
     const email = prompt("Enter the email of the user to invite:");
@@ -56,20 +46,6 @@ export function Header({ dict, lang }: { dict: any, lang: string }) {
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
-        {/* Language Switcher */}
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{dict.switchLanguage || 'Language'}</span>
-          <select 
-            value={lang} 
-            onChange={handleLanguageChange}
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.4rem', borderRadius: '6px', outline: 'none' }}
-          >
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="ar">العربية</option>
-          </select>
-        </div>
-        
         {/* Authentication Bar */}
         <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)', alignItems: 'center' }}>
           <div style={{ padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
@@ -97,14 +73,11 @@ export function Header({ dict, lang }: { dict: any, lang: string }) {
 
         {/* Navigation Tabs */}
         <div className="tabs">
-          <Link href={`/${lang}/dashboard`} className={`tab-btn ${isActive('dashboard') ? 'active' : ''}`}>
-            <LayoutDashboard size={18} /> {dict.dashboard || 'Dashboard'}
+          <Link href="/dashboard" className={`tab-btn ${isActive('dashboard') ? 'active' : ''}`}>
+            <LayoutDashboard size={18} /> Dashboard
           </Link>
-          <Link href={`/${lang}/market`} className={`tab-btn ${isActive('market') ? 'active' : ''}`}>
-            <TrendingUp size={18} /> {dict.market || 'Market'}
-          </Link>
-          <Link href={`/${lang}/logger`} className={`tab-btn ${isActive('logger') ? 'active' : ''}`}>
-            <Database size={18} /> {dict.logger || 'Logger'}
+          <Link href="/market" className={`tab-btn ${isActive('market') ? 'active' : ''}`}>
+            <TrendingUp size={18} /> Market
           </Link>
         </div>
       </div>

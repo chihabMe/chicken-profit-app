@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { saveSimulation, getSimulations, createFlock, getFlocks, logFlockDaily, getFlockLogs } from "../../actions";
+import { saveSimulation, getSimulations, createFlock, getFlocks, logFlockDaily, getFlockLogs } from "../actions";
 import { useRouter } from "next/navigation";
 
 interface PriceData {
@@ -29,16 +29,9 @@ const VACCINE_SCHEDULE = [
   { day: 35, action: 'Withdrawal of all medications/antibiotics' }
 ];
 
-const App = ({ dict, lang }: { dict: any, lang: string }) => {
+const App = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
-
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLang = e.target.value;
-    localStorage.setItem('preferredLang', newLang);
-    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000`;
-    router.push(`/${newLang}`);
-  };
   const [savedSimulations, setSavedSimulations] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
