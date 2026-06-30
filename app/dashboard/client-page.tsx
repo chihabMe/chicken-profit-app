@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, AlertTriangle, Activity, CheckCircle2, Calculator, CalendarDays, 
-  Database, Wheat, Target, Droplet, Syringe, LineChart as ChartIcon, LayoutDashboard, Save, LogIn, LogOut, FolderOpen
+  Database, Wheat, Target, Droplet, Syringe, LineChart as ChartIcon, LayoutDashboard, Save, LogIn, LogOut, FolderOpen, Printer, Download
 } from 'lucide-react';
 
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -281,6 +281,49 @@ const App = () => {
   const breakEvenPrice = totalCost / totalMeatKg;
   const fcr = feedConsumedPerChick / avgWeight;
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportCSV = () => {
+    const csvContent = [
+      ["Parameter", "Value"],
+      ["Starting Chicks", chicksBought],
+      ["Mortality Rate (%)", mortalityRate],
+      ["Start Date", startDate],
+      ["Days to Sell", daysToSell],
+      ["Avg Sale Weight (kg)", avgWeight],
+      ["Chick Purchase Price (DZD)", chickCost],
+      ["Total Feed per Chick (kg)", feedConsumedPerChick],
+      ["Feed Price (DZD / kg)", feedPricePerKg],
+      ["Meds/Vaccines per Chick (DZD)", medicationCost],
+      ["Energy per Chick (DZD)", energyCost],
+      ["Cycle Labor Total (DZD)", laborCostCycle],
+      ["", ""],
+      ["Metric", "Value"],
+      ["Survived Chicks", survivedChicks],
+      ["Total Meat Yield (kg)", totalMeatKg],
+      ["Selling Price (DZD/kg)", sellingPrice],
+      ["Total Expenses (DZD)", totalCost.toFixed(0)],
+      ["Total Revenue (DZD)", totalRevenue.toFixed(0)],
+      ["Net Profit (DZD)", profit.toFixed(0)],
+      ["Profit Margin (%)", profitMargin],
+      ["ROI (%)", roi],
+      ["Break-Even Price (DZD/kg)", breakEvenPrice.toFixed(2)],
+      ["FCR", fcr.toFixed(2)],
+    ].map(e => e.join(",")).join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `poultry-simulation-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Chart Data
   const costBreakdownData = [
     { name: 'Chicks', value: totalChickCost },
@@ -365,11 +408,23 @@ const App = () => {
         className="btn"
         style={{ background: 'var(--success-bg)', borderColor: 'var(--success)', color: 'var(--success)' }}
       >
-        <Save size={18} /> {isSaving ? 'Saving...' : 'Save Current Scenario'}
+        <Save size={18} /> {isSaving ? 'Saving...' : 'Save Scenario'}
+      </button>
+      <button 
+        onClick={handlePrint}
+        className="btn"
+      >
+        <Printer size={18} /> Print / Save PDF
+      </button>
+      <button 
+        onClick={handleExportCSV}
+        className="btn"
+      >
+        <Download size={18} /> Export CSV
       </button>
     </div>
     
-    <div className="dashboard">
+    <div className="dashboard" id="printable-area">
           {/* Left Column: Inputs */}
           <aside className="card input-section" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
             <h2 className="section-title"><Activity className="icon" size={20} /> Flock Details</h2>

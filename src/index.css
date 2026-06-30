@@ -528,3 +528,61 @@ select.form-input {
   margin-bottom: 2rem;
   font-size: 1rem;
 }
+
+@media print {
+  /* Hide non-printable elements */
+  .btn, .tabs, header, .auth-container, select {
+    display: none !important;
+  }
+  
+  /* Reset background and text colors for print */
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    min-height: auto !important;
+  }
+  
+  /* Reset dashboard layout */
+  .dashboard {
+    display: block !important;
+  }
+  
+  /* Reset card styles for print */
+  .card, .kpi-card, .chart-container, .scenarios-box {
+    background: #ffffff !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+    padding: 1rem !important;
+  }
+  
+  /* Adjust grid for KPI cards */
+  .kpi-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+  }
+  
+  .kpi-card {
+    flex: 1 1 200px !important;
+    border-left: 4px solid var(--accent) !important;
+  }
+  
+  /* Force charts to fit */
+  .charts-grid {
+    display: block !important;
+  }
+  
+  .chart-container {
+    height: 350px !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Expand the scrollable input sidebar */
+  .input-section {
+    max-height: none !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+}
