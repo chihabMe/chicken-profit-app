@@ -4,6 +4,11 @@ import { ReactNode } from 'react';
 import { Providers } from './providers';
 import { AuthGuard } from '../components/AuthGuard';
 import { Header } from '../components/Header';
+import { Toaster } from "@/components/ui/sonner";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata = {
   title: 'Poultry Farm Pro',
@@ -21,7 +26,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
         <Providers>
           <AuthGuard>
@@ -29,6 +34,7 @@ export default function RootLayout({
               <Header />
               {children}
             </div>
+            <Toaster />
           </AuthGuard>
         </Providers>
       </body>

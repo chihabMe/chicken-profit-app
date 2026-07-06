@@ -12,6 +12,14 @@ import {
 import { useSession, signIn, signOut } from "next-auth/react";
 import { saveSimulation, getSimulations, createFlock, getFlocks, logFlockDaily, getFlockLogs } from "../actions";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 
 interface PriceData {
   date: string;
@@ -69,8 +77,8 @@ const App = () => {
       body: JSON.stringify({ email })
     });
     const data = await res.json();
-    if (res.ok) alert(data.message);
-    else alert(data.error);
+    if (res.ok) toast.success(data.message);
+    else toast.error(data.error);
   };
 
   const handleChangePassword = async () => {
@@ -81,8 +89,8 @@ const App = () => {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ newPassword })
     });
-    if (res.ok) alert("Password changed successfully!");
-    else alert("Failed to change password.");
+    if (res.ok) toast.success("Password changed successfully!");
+    else toast.error("Failed to change password.");
   };
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'market' | 'logger'>('dashboard');
@@ -114,7 +122,7 @@ const App = () => {
   }, [activeFlockId]);
 
   const handleCreateFlock = async () => {
-    if (!newFlockName) return alert("Flock name required");
+    if (!newFlockName) return toast.error("Flock name required");
     await createFlock(newFlockName, newFlockChicks, newFlockDate);
     const updated = await getFlocks();
     setFlocks(updated);
@@ -122,7 +130,7 @@ const App = () => {
   };
 
   const handleLogDaily = async () => {
-    if (!activeFlockId) return alert("Select a flock first");
+    if (!activeFlockId) return toast.error("Select a flock first");
     await logFlockDaily(activeFlockId, logDay, logMortality, logFeed, logNotes);
     const updatedLogs = await getFlockLogs(activeFlockId);
     setFlockLogs(updatedLogs);
@@ -174,9 +182,9 @@ const App = () => {
       await saveSimulation(simName, data);
       const updated = await getSimulations();
       setSavedSimulations(updated);
-      alert("Scenario saved successfully!");
+      toast.success("Scenario saved successfully!");
     } catch (err) {
-      alert("Failed to save scenario.");
+      toast.error("Failed to save scenario.");
     } finally {
       setIsSaving(false);
     }
@@ -416,106 +424,103 @@ const App = () => {
         ))}
       </select>
 
-      <button 
-        onClick={handleSaveScenario}
+      <Button onClick={handleSaveScenario}
         disabled={isSaving}
-        className="btn"
+         variant="outline" 
         style={{ background: 'var(--success-bg)', borderColor: 'var(--success)', color: 'var(--success)' }}
       >
         <Save size={18} /> {isSaving ? 'Saving...' : 'Save Scenario'}
-      </button>
-      <button 
-        onClick={handlePrint}
-        className="btn"
+      </Button>
+      <Button onClick={handlePrint}
+         variant="outline" 
       >
         <Printer size={18} /> Print / Save PDF
-      </button>
-      <button 
-        onClick={handleExportCSV}
-        className="btn"
+      </Button>
+      <Button onClick={handleExportCSV}
+         variant="outline" 
       >
         <Download size={18} /> Export CSV
-      </button>
+      </Button>
     </div>
     
-    <div className="dashboard" id="printable-area">
+    <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8" id="printable-area">
           {/* Left Column: Inputs */}
-          <aside className="card input-section" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
-            <h2 className="section-title"><Activity className="icon" size={20} /> Flock Details</h2>
-            <div className="input-group">
+          <aside className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-6" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
+            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><Activity className="icon" size={20} /> Flock Details</h2>
+            <div className="flex flex-col gap-2">
               <label>Starting Chicks <span>total</span></label>
-              <input type="number" className="input-field" value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
+              <Input type="number"   value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Est. Mortality Rate <span className="unit">%</span></label>
-              <input type="number" step="0.1" className="input-field" value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
+              <Input type="number" step="0.1"   value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Avg Sale Weight <span className="unit">kg</span></label>
-              <input type="number" step="0.1" className="input-field" value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
+              <Input type="number" step="0.1"   value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
             
-            <h2 className="section-title"><CalendarDays className="icon" size={20} /> Timeline</h2>
-            <div className="input-group">
+            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><CalendarDays className="icon" size={20} /> Timeline</h2>
+            <div className="flex flex-col gap-2">
               <label>Start Date</label>
-              <input type="date" className="input-field" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              <Input type="date"   value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Days to Sell <span className="unit">days</span></label>
-              <input type="number" className="input-field" value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
+              <Input type="number"   value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 className="section-title" style={{ marginBottom: 0 }}><Calculator className="icon" size={20} /> Costs</h2>
+              <h2 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: 0 }}><Calculator className="icon" size={20} /> Costs</h2>
               <div style={{ display: 'flex', background: 'var(--bg-input)', borderRadius: '8px', padding: '4px' }}>
-                <button 
+                <Button 
                   onClick={() => setInputMode('per-chick')}
                   style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: inputMode === 'per-chick' ? 'var(--accent)' : 'transparent', color: inputMode === 'per-chick' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: '0.2s' }}
                 >
                   Per Chick
-                </button>
-                <button 
+                </Button>
+                <Button 
                   onClick={() => setInputMode('total')}
                   style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: inputMode === 'total' ? 'var(--accent)' : 'transparent', color: inputMode === 'total' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: '0.2s' }}
                 >
                   Total Flock
-                </button>
+                </Button>
               </div>
             </div>
             
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Chick Purchase {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
-              <input type="number" className="input-field" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
+              <Input type="number"   value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Feed Consumed {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">kg</span></label>
-              <input type="number" step="0.1" className="input-field" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
+              <Input type="number" step="0.1"   value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Feed Price <span className="unit">DZD / kg</span></label>
-              <input type="number" className="input-field" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
+              <Input type="number"   value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Meds/Vaccines {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
-              <input type="number" className="input-field" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
+              <Input type="number"   value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Energy {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
-              <input type="number" className="input-field" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
+              <Input type="number"   value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
             </div>
-            <div className="input-group">
+            <div className="flex flex-col gap-2">
               <label>Cycle Labor (Total) <span className="unit">DZD</span></label>
-              <input type="number" className="input-field" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
+              <Input type="number"   value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
 
-            <h2 className="section-title"><Database className="icon" size={20} /> Market Data</h2>
-            <div className="input-group">
+            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><Database className="icon" size={20} /> Market Data</h2>
+            <div className="flex flex-col gap-2">
               <label>
                 Selling Price 
                 <span className="unit" style={{ fontSize: '0.75rem', color: isAutoPrice ? 'var(--success)' : 'var(--warning)' }}>
@@ -523,19 +528,18 @@ const App = () => {
                 </span>
               </label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input 
-                  type="number" 
-                  className="input-field" 
+                <Input type="number" 
+                    
                   value={sellingPrice} 
                   onChange={e => setManualSellingPrice(Number(e.target.value))} 
                 />
                 {!isAutoPrice && (
-                  <button 
+                  <Button 
                     onClick={() => setManualSellingPrice(null)}
                     style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0 0.75rem', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
                   >
                     Auto
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -543,57 +547,57 @@ const App = () => {
 
           {/* Right Column: Advanced KPIs and Charts */}
           <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div className="kpi-grid" style={{ marginBottom: 0 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" style={{ marginBottom: 0 }}>
               <div className={`kpi-card ${profit > 0 ? 'success' : 'danger'}`}>
-                <div className="kpi-title"><TrendingUp size={16} /> Net Profit / Loss</div>
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><TrendingUp size={16} /> Net Profit / Loss</div>
                 <div className={`kpi-value ${profit > 0 ? 'success' : 'danger'}`}>
                   {profit > 0 ? '+' : ''}{formatDZD(profit)}
                 </div>
-                <div className="kpi-subtext">Margin: {profitMargin}% | ROI: {roi}%</div>
+                <div className="text-sm text-muted-foreground mt-1">Margin: {profitMargin}% | ROI: {roi}%</div>
               </div>
-              <div className="kpi-card">
-                <div className="kpi-title"><Target size={16} /> Break-Even Price</div>
-                <div className="kpi-value">{Math.round(breakEvenPrice)} DZD/kg</div>
-                <div className="kpi-subtext">Must sell above this to profit</div>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Target size={16} /> Break-Even Price</div>
+                <div className="text-4xl font-extrabold mt-2">{Math.round(breakEvenPrice)} DZD/kg</div>
+                <div className="text-sm text-muted-foreground mt-1">Must sell above this to profit</div>
               </div>
-              <div className="kpi-card">
-                <div className="kpi-title"><Activity size={16} /> Total Revenue</div>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Activity size={16} /> Total Revenue</div>
                 <div className="kpi-value success">{formatDZD(totalRevenue)}</div>
-                <div className="kpi-subtext">From {totalMeatKg.toLocaleString()} kg meat</div>
+                <div className="text-sm text-muted-foreground mt-1">From {totalMeatKg.toLocaleString()} kg meat</div>
               </div>
               <div className="kpi-card warning">
-                <div className="kpi-title"><AlertTriangle size={16} /> Total Expenses</div>
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><AlertTriangle size={16} /> Total Expenses</div>
                 <div className="kpi-value danger">{formatDZD(totalCost)}</div>
-                <div className="kpi-subtext">All operational costs</div>
+                <div className="text-sm text-muted-foreground mt-1">All operational costs</div>
               </div>
             </div>
 
-            <div className="kpi-grid" style={{ marginBottom: 0 }}>
-              <div className="kpi-card" style={{ background: fcr <= 1.6 ? 'var(--success-bg)' : fcr >= 1.8 ? 'var(--danger-bg)' : 'var(--bg-card)'}}>
-                <div className="kpi-title"><Wheat size={16} /> Feed Conversion (FCR)</div>
-                <div className="kpi-value">{fcr.toFixed(2)}</div>
-                <div className="kpi-subtext">kg of feed per kg of meat</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" style={{ marginBottom: 0 }}>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]" style={{ background: fcr <= 1.6 ? 'var(--success-bg)' : fcr >= 1.8 ? 'var(--danger-bg)' : 'var(--bg-card)'}}>
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Wheat size={16} /> Feed Conversion (FCR)</div>
+                <div className="text-4xl font-extrabold mt-2">{fcr.toFixed(2)}</div>
+                <div className="text-sm text-muted-foreground mt-1">kg of feed per kg of meat</div>
               </div>
-              <div className="kpi-card">
-                <div className="kpi-title"><CheckCircle2 size={16} /> Survived / Yield</div>
-                <div className="kpi-value">{survivedChicks.toLocaleString()}</div>
-                <div className="kpi-subtext">{Math.floor((survivedChicks/chicksBought)*100)}% Livability</div>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><CheckCircle2 size={16} /> Survived / Yield</div>
+                <div className="text-4xl font-extrabold mt-2">{survivedChicks.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground mt-1">{Math.floor((survivedChicks/chicksBought)*100)}% Livability</div>
               </div>
-              <div className="kpi-card">
-                <div className="kpi-title"><Droplet size={16} /> Est. Water Needed</div>
-                <div className="kpi-value">{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
-                <div className="kpi-subtext">For the entire cycle</div>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Droplet size={16} /> Est. Water Needed</div>
+                <div className="text-4xl font-extrabold mt-2">{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
+                <div className="text-sm text-muted-foreground mt-1">For the entire cycle</div>
               </div>
-              <div className="kpi-card">
-                <div className="kpi-title"><CalendarDays size={16} /> Sale Target Date</div>
-                <div className="kpi-value" style={{ fontSize: '1.25rem' }}>{endDateDisplay}</div>
-                <div className="kpi-subtext">In exactly {daysToSell} days</div>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><CalendarDays size={16} /> Sale Target Date</div>
+                <div className="text-4xl font-extrabold mt-2" style={{ fontSize: '1.25rem' }}>{endDateDisplay}</div>
+                <div className="text-sm text-muted-foreground mt-1">In exactly {daysToSell} days</div>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-              <div className="card" style={{ padding: '1.5rem' }}>
-                <h3 className="section-title" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 transition-all hover:shadow-lg" style={{ padding: '1.5rem' }}>
+                <h3 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
                   <Syringe className="icon" size={20} /> Suggested Medical Schedule
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
@@ -624,11 +628,11 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="chart-container" style={{ height: 'auto' }}>
-                <div className="chart-header">
-                  <h3 className="chart-title">Expense Distribution</h3>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ height: 'auto' }}>
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold">Expense Distribution</h3>
                 </div>
-                <div className="chart-body" style={{ height: '300px' }}>
+                <div className="flex-1 w-full min-h-0" style={{ height: '300px' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={costBreakdownData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
@@ -644,13 +648,13 @@ const App = () => {
               </div>
             </div>
 
-            <div className="charts-grid">
-              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
-                <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 className="chart-title">Daily Resources & Expected Growth Curve</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ gridColumn: '1 / -1' }}>
+                <div className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 className="text-xl font-bold">Daily Resources & Expected Growth Curve</h3>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>*Based on S-Curve model for {avgWeight}kg target</span>
                 </div>
-                <div className="chart-body">
+                <div className="flex-1 w-full min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={resourceData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -667,11 +671,11 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
-                <div className="chart-header">
-                  <h3 className="chart-title">Profit Sensitivity (Price/kg)</h3>
+              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ gridColumn: '1 / -1' }}>
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold">Profit Sensitivity (Price/kg)</h3>
                 </div>
-                <div className="chart-body">
+                <div className="flex-1 w-full min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={sensitivityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
