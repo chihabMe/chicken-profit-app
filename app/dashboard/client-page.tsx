@@ -497,18 +497,18 @@ const App = () => {
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Chick Purchase <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-[10px] font-semibold h-7 items-center gap-0.5">
+                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
                     <button 
                       type="button"
                       onClick={() => setChickCostMode('per-chick')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${chickCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${chickCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Chick
                     </button>
                     <button 
                       type="button"
                       onClick={() => setChickCostMode('total')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${chickCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${chickCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Total
                     </button>
@@ -521,18 +521,18 @@ const App = () => {
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feed Consumed <span className="unit">kg</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-[10px] font-semibold h-7 items-center gap-0.5">
+                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
                     <button 
                       type="button"
                       onClick={() => setFeedConsumedMode('per-chick')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${feedConsumedMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${feedConsumedMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Chick
                     </button>
                     <button 
                       type="button"
                       onClick={() => setFeedConsumedMode('total')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${feedConsumedMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${feedConsumedMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Total
                     </button>
@@ -551,18 +551,18 @@ const App = () => {
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meds/Vaccines <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-[10px] font-semibold h-7 items-center gap-0.5">
+                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
                     <button 
                       type="button"
                       onClick={() => setMedicationCostMode('per-chick')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${medicationCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${medicationCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Chick
                     </button>
                     <button 
                       type="button"
                       onClick={() => setMedicationCostMode('total')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${medicationCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${medicationCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Total
                     </button>
@@ -575,18 +575,18 @@ const App = () => {
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Energy <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-[10px] font-semibold h-7 items-center gap-0.5">
+                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
                     <button 
                       type="button"
                       onClick={() => setEnergyCostMode('per-chick')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${energyCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${energyCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Chick
                     </button>
                     <button 
                       type="button"
                       onClick={() => setEnergyCostMode('total')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${energyCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${energyCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Total
                     </button>
@@ -599,18 +599,18 @@ const App = () => {
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cycle Labor <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-[10px] font-semibold h-7 items-center gap-0.5">
+                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
                     <button 
                       type="button"
                       onClick={() => setLaborCostMode('per-chick')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${laborCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${laborCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Chick
                     </button>
                     <button 
                       type="button"
                       onClick={() => setLaborCostMode('total')}
-                      className={`h-6 px-2.5 rounded-md transition-all duration-200 cursor-pointer ${laborCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
+                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${laborCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
                     >
                       Total
                     </button>
