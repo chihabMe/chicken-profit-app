@@ -457,115 +457,167 @@ const App = () => {
     
     <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-4" id="printable-area">
           {/* Left Column: Inputs */}
-          <aside className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-4" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
-            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><Activity className="icon" size={20} /> Flock Details</h2>
-            <div className="flex flex-col gap-2">
-              <label>Starting Chicks <span>total</span></label>
-              <Input type="number"   value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label>Est. Mortality Rate <span className="unit">%</span></label>
-              <Input type="number" step="0.1"   value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label>Avg Sale Weight <span className="unit">kg</span></label>
-              <Input type="number" step="0.1"   value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
-            </div>
-
-            <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
+          <aside className="flex flex-col gap-6 pr-4 no-print" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px', border: 'none', boxShadow: 'none', background: 'transparent' }}>
             
-            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><CalendarDays className="icon" size={20} /> Timeline</h2>
-            <div className="flex flex-col gap-2">
-              <label>Start Date</label>
-              <Input type="date"   value={startDate} onChange={e => setStartDate(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label>Days to Sell <span className="unit">days</span></label>
-              <Input type="number"   value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
+            {/* Flock Details */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-foreground pb-1.5 border-b border-border/60"><Activity className="text-primary" size={16} /> Flock Details</h2>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Starting Chicks</label>
+                <Input type="number" value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Est. Mortality Rate <span className="unit">%</span></label>
+                <Input type="number" step="0.1" value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Avg Sale Weight <span className="unit">kg</span></label>
+                <Input type="number" step="0.1" value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
+              </div>
             </div>
 
-            <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
+            {/* Timeline */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-foreground pb-1.5 border-b border-border/60"><CalendarDays className="text-primary" size={16} /> Timeline</h2>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start Date</label>
+                <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Days to Sell <span className="unit">days</span></label>
+                <Input type="number" value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
+              </div>
+            </div>
 
-            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: '1.5rem' }}><Calculator className="icon" size={20} /> Costs</h2>
-            
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-muted-foreground uppercase">Chick Purchase <span className="unit">DZD</span></label>
-                <Select value={chickCostMode} onValueChange={(val: any) => setChickCostMode(val)}>
-                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
-                    <SelectValue placeholder="Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="per-chick">Per Chick</SelectItem>
-                    <SelectItem value="total">Total</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Costs */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-foreground pb-1.5 border-b border-border/60"><Calculator className="text-primary" size={16} /> Costs</h2>
+              
+              {/* Chick Purchase */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Chick Purchase <span className="unit">DZD</span></label>
+                  <div className="flex bg-muted p-0.5 rounded-md border border-border text-[9px] font-bold h-6">
+                    <button 
+                      type="button"
+                      onClick={() => setChickCostMode('per-chick')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${chickCostMode === 'per-chick' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Bird
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setChickCostMode('total')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${chickCostMode === 'total' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Flock
+                    </button>
+                  </div>
+                </div>
+                <Input type="number" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
               </div>
-              <Input type="number" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-muted-foreground uppercase">Feed Consumed <span className="unit">kg</span></label>
-                <Select value={feedConsumedMode} onValueChange={(val: any) => setFeedConsumedMode(val)}>
-                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
-                    <SelectValue placeholder="Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="per-chick">Per Chick</SelectItem>
-                    <SelectItem value="total">Total</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Feed Consumed */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feed Consumed <span className="unit">kg</span></label>
+                  <div className="flex bg-muted p-0.5 rounded-md border border-border text-[9px] font-bold h-6">
+                    <button 
+                      type="button"
+                      onClick={() => setFeedConsumedMode('per-chick')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${feedConsumedMode === 'per-chick' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Bird
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setFeedConsumedMode('total')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${feedConsumedMode === 'total' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Flock
+                    </button>
+                  </div>
+                </div>
+                <Input type="number" step="0.1" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
               </div>
-              <Input type="number" step="0.1" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-muted-foreground uppercase">Feed Price <span className="unit">DZD / kg</span></label>
-              <Input type="number" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-muted-foreground uppercase">Meds/Vaccines <span className="unit">DZD</span></label>
-                <Select value={medicationCostMode} onValueChange={(val: any) => setMedicationCostMode(val)}>
-                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
-                    <SelectValue placeholder="Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="per-chick">Per Chick</SelectItem>
-                    <SelectItem value="total">Total</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Feed Price */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feed Price <span className="unit">DZD / kg</span></label>
+                <Input type="number" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
               </div>
-              <Input type="number" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-muted-foreground uppercase">Energy <span className="unit">DZD</span></label>
-                <Select value={energyCostMode} onValueChange={(val: any) => setEnergyCostMode(val)}>
-                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
-                    <SelectValue placeholder="Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="per-chick">Per Chick</SelectItem>
-                    <SelectItem value="total">Total</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Meds/Vaccines */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meds/Vaccines <span className="unit">DZD</span></label>
+                  <div className="flex bg-muted p-0.5 rounded-md border border-border text-[9px] font-bold h-6">
+                    <button 
+                      type="button"
+                      onClick={() => setMedicationCostMode('per-chick')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${medicationCostMode === 'per-chick' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Bird
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setMedicationCostMode('total')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${medicationCostMode === 'total' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Flock
+                    </button>
+                  </div>
+                </div>
+                <Input type="number" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
               </div>
-              <Input type="number" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-muted-foreground uppercase">Cycle Labor <span className="unit">DZD</span></label>
-                <Select value={laborCostMode} onValueChange={(val: any) => setLaborCostMode(val)}>
-                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
-                    <SelectValue placeholder="Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="per-chick">Per Chick</SelectItem>
-                    <SelectItem value="total">Total</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Energy */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Energy <span className="unit">DZD</span></label>
+                  <div className="flex bg-muted p-0.5 rounded-md border border-border text-[9px] font-bold h-6">
+                    <button 
+                      type="button"
+                      onClick={() => setEnergyCostMode('per-chick')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${energyCostMode === 'per-chick' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Bird
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setEnergyCostMode('total')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${energyCostMode === 'total' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Flock
+                    </button>
+                  </div>
+                </div>
+                <Input type="number" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
               </div>
-              <Input type="number" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
+
+              {/* Cycle Labor */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cycle Labor <span className="unit">DZD</span></label>
+                  <div className="flex bg-muted p-0.5 rounded-md border border-border text-[9px] font-bold h-6">
+                    <button 
+                      type="button"
+                      onClick={() => setLaborCostMode('per-chick')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${laborCostMode === 'per-chick' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Bird
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setLaborCostMode('total')}
+                      className={`px-1.5 rounded-xs transition-all cursor-pointer ${laborCostMode === 'total' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Flock
+                    </button>
+                  </div>
+                </div>
+                <Input type="number" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
+              </div>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
