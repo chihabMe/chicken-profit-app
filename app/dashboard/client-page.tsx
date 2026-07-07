@@ -450,19 +450,19 @@ const App = () => {
         <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-end">
           <Button onClick={handleSaveScenario}
             disabled={isSaving}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-2 cursor-pointer"
           >
             <Save size={16} /> Save Scenario
           </Button>
           <Button onClick={handlePrint}
             variant="outline"
-            className="border-primary/30 hover:bg-primary/10 text-primary font-semibold flex items-center gap-2"
+            className="border-primary/20 hover:bg-primary/5 text-primary font-semibold flex items-center gap-2 cursor-pointer"
           >
             <Printer size={16} /> Print / Save PDF
           </Button>
           <Button onClick={handleExportCSV}
             variant="outline"
-            className="border-border hover:bg-accent flex items-center gap-2"
+            className="border-border hover:bg-accent text-foreground flex items-center gap-2 cursor-pointer"
           >
             <Download size={16} /> Export CSV
           </Button>
