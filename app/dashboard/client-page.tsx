@@ -489,352 +489,481 @@ const App = () => {
         </div>
       </div>
     
-    <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-4" id="printable-area">
+    <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6" id="printable-area">
           {/* Left Column: Inputs */}
-          <aside className="flex flex-col gap-6 pr-4 no-print" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px', border: 'none', boxShadow: 'none', background: 'transparent' }}>
-            
-            {/* Flock Details */}
-            <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-foreground pb-1.5 border-b border-border/60"><Activity className="text-primary" size={16} /> Flock Details</h2>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Starting Chicks</label>
-                <Input type="number" value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Est. Mortality Rate <span className="unit">%</span></label>
-                <Input type="number" step="0.1" value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Avg Sale Weight <span className="unit">kg</span></label>
-                <Input type="number" step="0.1" value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-foreground pb-1.5 border-b border-border/60"><CalendarDays className="text-primary" size={16} /> Timeline</h2>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start Date</label>
-                <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Days to Sell <span className="unit">days</span></label>
-                <Input type="number" value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
-              </div>
-            </div>
-
-            {/* Costs */}
-            <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-foreground pb-1.5 border-b border-border/60"><Calculator className="text-primary" size={16} /> Costs</h2>
-              
-              {/* Chick Purchase */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Chick Purchase <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
-                    <button 
-                      type="button"
-                      onClick={() => setChickCostMode('per-chick')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${chickCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Chick
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setChickCostMode('total')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${chickCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Total
-                    </button>
+          <aside className="no-print lg:sticky lg:top-6" style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+            <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-xl rounded-2xl">
+              <CardHeader className="pb-4 border-b border-border/50">
+                <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                  <Calculator className="text-primary size-5" /> Simulation Parameters
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Adjust inputs to compute unit economics and profits.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-6 pt-5">
+                
+                {/* Flock Details */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-foreground pb-1 border-b border-border/40"><Activity className="text-primary size-4" /> Flock Details</h3>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Starting Chicks</label>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={chicksBought} onChange={e => setChicksBought(Number(e.target.value))} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Est. Mortality Rate (%)</label>
+                    <Input type="number" step="0.1" className="h-10 bg-background/50 border-border/80" value={mortalityRate} onChange={e => setMortalityRate(Number(e.target.value))} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg Sale Weight (kg)</label>
+                    <Input type="number" step="0.1" className="h-10 bg-background/50 border-border/80" value={avgWeight} onChange={e => setAvgWeight(Number(e.target.value))} />
                   </div>
                 </div>
-                <Input type="number" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
-              </div>
 
-              {/* Feed Consumed */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feed Consumed <span className="unit">kg</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
-                    <button 
-                      type="button"
-                      onClick={() => setFeedConsumedMode('per-chick')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${feedConsumedMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Chick
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setFeedConsumedMode('total')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${feedConsumedMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Total
-                    </button>
+                {/* Timeline */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-foreground pb-1 border-b border-border/40"><CalendarDays className="text-primary size-4" /> Timeline</h3>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Start Date</label>
+                    <Input type="date" className="h-10 bg-background/50 border-border/80" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Days to Sell (days)</label>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={daysToSell} onChange={e => setDaysToSell(Number(e.target.value))} />
                   </div>
                 </div>
-                <Input type="number" step="0.1" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
-              </div>
 
-              {/* Feed Price */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feed Price <span className="unit">DZD / kg</span></label>
-                <Input type="number" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
-              </div>
+                {/* Costs */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-foreground pb-1 border-b border-border/40"><Calculator className="text-primary size-4" /> Costs</h3>
+                  
+                  {/* Chick Purchase */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Chick Purchase (DZD)</label>
+                      <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-8 items-center gap-0.5 w-32 shadow-inner">
+                        <button 
+                          type="button"
+                          onClick={() => setChickCostMode('per-chick')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${chickCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Chick
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setChickCostMode('total')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${chickCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Total
+                        </button>
+                      </div>
+                    </div>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
+                  </div>
 
-              {/* Meds/Vaccines */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meds/Vaccines <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
-                    <button 
-                      type="button"
-                      onClick={() => setMedicationCostMode('per-chick')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${medicationCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Chick
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setMedicationCostMode('total')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${medicationCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Total
-                    </button>
+                  {/* Feed Consumed */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Feed Consumed (kg)</label>
+                      <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-8 items-center gap-0.5 w-32 shadow-inner">
+                        <button 
+                          type="button"
+                          onClick={() => setFeedConsumedMode('per-chick')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${feedConsumedMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Chick
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setFeedConsumedMode('total')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${feedConsumedMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Total
+                        </button>
+                      </div>
+                    </div>
+                    <Input type="number" step="0.1" className="h-10 bg-background/50 border-border/80" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
+                  </div>
+
+                  {/* Feed Price */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Feed Price (DZD/kg)</label>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
+                  </div>
+
+                  {/* Meds/Vaccines */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Meds/Vaccines (DZD)</label>
+                      <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-8 items-center gap-0.5 w-32 shadow-inner">
+                        <button 
+                          type="button"
+                          onClick={() => setMedicationCostMode('per-chick')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${medicationCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Chick
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setMedicationCostMode('total')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${medicationCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Total
+                        </button>
+                      </div>
+                    </div>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
+                  </div>
+
+                  {/* Energy */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Energy (DZD)</label>
+                      <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-8 items-center gap-0.5 w-32 shadow-inner">
+                        <button 
+                          type="button"
+                          onClick={() => setEnergyCostMode('per-chick')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${energyCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Chick
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setEnergyCostMode('total')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${energyCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Total
+                        </button>
+                      </div>
+                    </div>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
+                  </div>
+
+                  {/* Cycle Labor */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cycle Labor (DZD)</label>
+                      <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-8 items-center gap-0.5 w-32 shadow-inner">
+                        <button 
+                          type="button"
+                          onClick={() => setLaborCostMode('per-chick')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${laborCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Chick
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setLaborCostMode('total')}
+                          className={`flex-1 h-6 rounded-md transition-all duration-200 cursor-pointer text-center text-[10px] uppercase font-bold ${laborCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground hover:bg-card/30'}`}
+                        >
+                          Total
+                        </button>
+                      </div>
+                    </div>
+                    <Input type="number" className="h-10 bg-background/50 border-border/80" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
                   </div>
                 </div>
-                <Input type="number" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
-              </div>
 
-              {/* Energy */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Energy <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
-                    <button 
-                      type="button"
-                      onClick={() => setEnergyCostMode('per-chick')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${energyCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Chick
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setEnergyCostMode('total')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${energyCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Total
-                    </button>
+                <div className="border-t border-border/50 my-2"></div>
+
+                {/* Market Price Setting */}
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-foreground pb-1 border-b border-border/40"><Database className="text-primary size-4" /> Market Data</h3>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex justify-between items-center uppercase tracking-wider">
+                      Selling Price
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isAutoPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                        {isAutoPrice ? 'AUTO' : 'MANUAL'}
+                      </span>
+                    </label>
+                    <div className="flex gap-2">
+                      <Input type="number" className="h-10 bg-background/50 border-border/80 flex-1" value={sellingPrice} onChange={e => setManualSellingPrice(Number(e.target.value))} />
+                      {!isAutoPrice && (
+                        <Button 
+                          onClick={() => setManualSellingPrice(null)}
+                          variant="secondary"
+                          className="h-10 border border-border/80 hover:bg-accent/80 font-semibold cursor-pointer"
+                        >
+                          Auto
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <Input type="number" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
-              </div>
 
-              {/* Cycle Labor */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cycle Labor <span className="unit">DZD</span></label>
-                  <div className="flex bg-muted/80 p-0.5 rounded-lg border border-border/50 text-xs font-semibold h-9 items-center gap-0.5 w-36">
-                    <button 
-                      type="button"
-                      onClick={() => setLaborCostMode('per-chick')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${laborCostMode === 'per-chick' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Chick
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setLaborCostMode('total')}
-                      className={`flex-1 h-7.5 rounded-md transition-all duration-200 cursor-pointer text-center text-xs ${laborCostMode === 'total' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'}`}
-                    >
-                      Total
-                    </button>
-                  </div>
-                </div>
-                <Input type="number" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
-              </div>
-            </div>
-
-            <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
-
-            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><Database className="icon" size={20} /> Market Data</h2>
-            <div className="flex flex-col gap-2">
-              <label>
-                Selling Price 
-                <span className="unit" style={{ fontSize: '0.75rem', color: isAutoPrice ? 'var(--success)' : 'var(--warning)' }}>
-                  {isAutoPrice ? '(Auto)' : '(Manual)'}
-                </span>
-              </label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <Input type="number" 
-                    
-                  value={sellingPrice} 
-                  onChange={e => setManualSellingPrice(Number(e.target.value))} 
-                />
-                {!isAutoPrice && (
-                  <Button 
-                    onClick={() => setManualSellingPrice(null)}
-                    style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0 0.75rem', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
-                  >
-                    Auto
-                  </Button>
-                )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </aside>
 
           {/* Right Column: Advanced KPIs and Charts */}
-          <main style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" style={{ marginBottom: 0 }}>
-              <div className={`kpi-card ${profit > 0 ? 'success' : 'danger'}`}>
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><TrendingUp size={16} /> Net Profit / Loss</div>
-                <div className={`kpi-value ${profit > 0 ? 'success' : 'danger'}`}>
-                  {profit > 0 ? '+' : ''}{formatDZD(profit)}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">Margin: {profitMargin}% | ROI: {roi}%</div>
-              </div>
-              <div className="kpi-card warning">
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Target size={16} /> Break-Even Price</div>
-                <div className="kpi-value warning">{Math.round(breakEvenPrice)} DZD/kg</div>
-                <div className="text-sm text-muted-foreground mt-1">Must sell above this to profit</div>
-              </div>
-              <div className="kpi-card success">
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Activity size={16} /> Total Revenue</div>
-                <div className="kpi-value success">{formatDZD(totalRevenue)}</div>
-                <div className="text-sm text-muted-foreground mt-1">From {totalMeatKg.toLocaleString()} kg meat</div>
-              </div>
-              <div className="kpi-card danger">
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><AlertTriangle size={16} /> Total Expenses</div>
-                <div className="kpi-value danger">{formatDZD(totalCost)}</div>
-                <div className="text-sm text-muted-foreground mt-1">All operational costs</div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" style={{ marginBottom: 0 }}>
-              <div className={`kpi-card ${fcr <= 1.6 ? 'success' : fcr >= 1.8 ? 'danger' : 'warning'}`}>
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Wheat size={16} /> Feed Conversion (FCR)</div>
-                <div className={`kpi-value ${fcr <= 1.6 ? 'success' : fcr >= 1.8 ? 'danger' : 'warning'}`}>{fcr.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground mt-1">kg of feed per kg of meat</div>
-              </div>
-              <div className="kpi-card success">
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><CheckCircle2 size={16} /> Survived / Yield</div>
-                <div className="kpi-value success">{survivedChicks.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground mt-1">{Math.floor((survivedChicks/chicksBought)*100)}% Livability</div>
-              </div>
-              <div className="kpi-card" style={{ '--accent-gradient': 'linear-gradient(135deg, #0ea5e9, #3b82f6)' } as React.CSSProperties}>
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Droplet size={16} /> Est. Water Needed</div>
-                <div className="kpi-value" style={{ color: '#0ea5e9' }}>{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
-                <div className="text-sm text-muted-foreground mt-1">For the entire cycle</div>
-              </div>
-              <div className="kpi-card">
-                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><CalendarDays size={16} /> Sale Target Date</div>
-                <div className="kpi-value">{endDateDisplay}</div>
-                <div className="text-sm text-muted-foreground mt-1">In exactly {daysToSell} days</div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border bg-card text-card-foreground shadow p-6 mb-8 page-break-inside-avoid">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  <Activity className="text-primary" size={20} /> Expense Distribution & Unit Cost Analysis
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Visual breakdown of production costs correlated to unit economics
-                </p>
-              </div>
+          <main className="flex flex-col gap-6">
+            
+            {/* KPI Cards Grid First Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                {/* Donut Chart Column */}
-                <div className="lg:col-span-5 flex justify-center items-center h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie 
-                        data={costBreakdownData} 
-                        cx="50%" 
-                        cy="50%" 
-                        innerRadius={70} 
-                        outerRadius={105} 
-                        paddingAngle={4} 
-                        dataKey="value"
-                      >
-                        {costBreakdownData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip 
-                        formatter={(value: number) => formatDZD(value)} 
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} 
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                {/* Metrics Table Column */}
-                <div className="lg:col-span-7">
-                  <div className="border rounded-lg overflow-hidden bg-background/50">
-                    <Table>
-                      <TableHeader className="bg-muted/40">
-                        <TableRow>
-                          <TableHead className="py-2.5 font-semibold text-xs">Cost Component</TableHead>
-                          <TableHead className="py-2.5 text-right font-semibold text-xs">Total Cost</TableHead>
-                          <TableHead className="py-2.5 text-right font-semibold text-xs">% Total</TableHead>
-                          <TableHead className="py-2.5 text-right font-semibold text-xs">Per Bird</TableHead>
-                          <TableHead className="py-2.5 text-right font-semibold text-xs">Per kg</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {costBreakdownData.map((item, index) => {
-                          const percentage = totalCost > 0 ? ((item.value / totalCost) * 100).toFixed(1) : '0.0';
-                          const perBird = (item.value / chicksBought).toFixed(1);
-                          const perKg = totalMeatKg > 0 ? (item.value / totalMeatKg).toFixed(1) : '0.0';
-                          
-                          return (
-                            <TableRow key={item.name} className="hover:bg-accent/30 transition-colors">
-                              <TableCell className="py-2 flex items-center gap-2 font-medium">
-                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
-                                {item.name}
-                              </TableCell>
-                              <TableCell className="py-2 text-right font-semibold">{formatDZD(item.value)}</TableCell>
-                              <TableCell className="py-2 text-right text-muted-foreground">{percentage}%</TableCell>
-                              <TableCell className="py-2 text-right text-muted-foreground">{perBird} DA</TableCell>
-                              <TableCell className="py-2 text-right text-muted-foreground">{perKg} DA</TableCell>
-                            </TableRow>
-                          );
-                        })}
-                        {/* Summary Row */}
-                        <TableRow className="bg-muted/30 font-bold border-t-2">
-                          <TableCell className="py-3 font-semibold">Total Production Cost</TableCell>
-                          <TableCell className="py-3 text-right text-primary font-semibold">{formatDZD(totalCost)}</TableCell>
-                          <TableCell className="py-3 text-right font-semibold">100%</TableCell>
-                          <TableCell className="py-3 text-right text-muted-foreground font-semibold">{(totalCost / chicksBought).toFixed(1)} DA</TableCell>
-                          <TableCell className="py-3 text-right text-muted-foreground font-semibold">{totalMeatKg > 0 ? (totalCost / totalMeatKg).toFixed(1) : '0.0'} DA</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+              {/* Card 1: Net Profit */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className={`absolute top-0 left-0 w-full h-[4px] ${profit > 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <TrendingUp size={14} className={profit > 0 ? "text-emerald-500" : "text-rose-500"} /> Net Profit / Loss
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-extrabold tracking-tight ${profit > 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                    {profit > 0 ? '+' : ''}{formatDZD(profit)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    Margin: <span className="text-foreground">{profitMargin}%</span> | ROI: <span className="text-foreground">{roi}%</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card 2: Break-Even */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className="absolute top-0 left-0 w-full h-[4px] bg-amber-500" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Target size={14} className="text-amber-500" /> Break-Even Price
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-extrabold tracking-tight text-amber-500">
+                    {Math.round(breakEvenPrice)} DZD/kg
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    Must sell above this to yield profit.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card 3: Total Revenue */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className="absolute top-0 left-0 w-full h-[4px] bg-indigo-500" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Activity size={14} className="text-indigo-500" /> Total Revenue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-extrabold tracking-tight text-indigo-500">
+                    {formatDZD(totalRevenue)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    From <span className="text-foreground">{totalMeatKg.toLocaleString()} kg</span> of yield.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card 4: Total Expenses */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className="absolute top-0 left-0 w-full h-[4px] bg-rose-500" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <AlertTriangle size={14} className="text-rose-500" /> Total Expenses
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-extrabold tracking-tight text-rose-500">
+                    {formatDZD(totalCost)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    All operating costs combined.
+                  </p>
+                </CardContent>
+              </Card>
+
+            </div>
+
+            {/* KPI Cards Grid Second Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Card 5: FCR */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className={`absolute top-0 left-0 w-full h-[4px] ${fcr <= 1.6 ? "bg-emerald-500" : fcr >= 1.8 ? "bg-rose-500" : "bg-amber-500"}`} />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Wheat size={14} className={fcr <= 1.6 ? "text-emerald-500" : fcr >= 1.8 ? "text-rose-500" : "text-amber-500"} /> Feed Conversion (FCR)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-extrabold tracking-tight ${fcr <= 1.6 ? "text-emerald-500" : fcr >= 1.8 ? "text-rose-500" : "text-amber-500"}`}>
+                    {fcr.toFixed(2)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    kg feed consumed per kg meat yield.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card 6: Survived / Yield */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className="absolute top-0 left-0 w-full h-[4px] bg-emerald-500" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 size={14} className="text-emerald-500" /> Survived / Yield
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-extrabold tracking-tight text-emerald-500">
+                    {survivedChicks.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    <span className="text-foreground">{Math.floor((survivedChicks/chicksBought)*100)}%</span> Livability rate.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card 7: Est. Water Needed */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className="absolute top-0 left-0 w-full h-[4px] bg-sky-500" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Droplet size={14} className="text-sky-500" /> Est. Water Needed
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-extrabold tracking-tight text-sky-500">
+                    {(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    Estimated for the entire cycle run.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card 8: Sale Target Date */}
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+                <div className="absolute top-0 left-0 w-full h-[4px] bg-primary" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <CalendarDays size={14} className="text-primary" /> Sale Target Date
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-extrabold tracking-tight text-foreground">
+                    {endDateDisplay}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                    Cycle completion in <span className="text-foreground">{daysToSell} days</span>.
+                  </p>
+                </CardContent>
+              </Card>
+
+            </div>
+
+            {/* Widescreen Expense Distribution Card */}
+            <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden page-break-inside-avoid">
+              <CardHeader className="border-b border-border/50 pb-4">
+                <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                  <Activity className="text-primary size-5" /> Expense Distribution & Unit Cost Analysis
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Detailed cost breakdown calculated relative to bird yield and total weight.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  
+                  {/* Donut Chart Column */}
+                  <div className="lg:col-span-5 flex justify-center items-center h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie 
+                          data={costBreakdownData} 
+                          cx="50%" 
+                          cy="50%" 
+                          innerRadius={70} 
+                          outerRadius={105} 
+                          paddingAngle={4} 
+                          dataKey="value"
+                        >
+                          {costBreakdownData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip 
+                          formatter={(value: number) => formatDZD(value)} 
+                          contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--foreground)' }} 
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Metrics Table Column */}
+                  <div className="lg:col-span-7">
+                    <div className="border border-border/80 rounded-xl overflow-hidden bg-background/30">
+                      <Table>
+                        <TableHeader className="bg-muted/40">
+                          <TableRow className="border-b border-border/50">
+                            <TableHead className="py-3 font-bold text-xs text-foreground/80">Cost Component</TableHead>
+                            <TableHead className="py-3 text-right font-bold text-xs text-foreground/80">Total Cost</TableHead>
+                            <TableHead className="py-3 text-right font-bold text-xs text-foreground/80">% Total</TableHead>
+                            <TableHead className="py-3 text-right font-bold text-xs text-foreground/80">Per Chick</TableHead>
+                            <TableHead className="py-3 text-right font-bold text-xs text-foreground/80">Per kg</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {costBreakdownData.map((item, index) => {
+                            const percentage = totalCost > 0 ? ((item.value / totalCost) * 100).toFixed(1) : '0.0';
+                            const perBird = (item.value / chicksBought).toFixed(1);
+                            const perKg = totalMeatKg > 0 ? (item.value / totalMeatKg).toFixed(1) : '0.0';
+                            
+                            return (
+                              <TableRow key={item.name} className="hover:bg-accent/40 border-b border-border/40 transition-colors">
+                                <TableCell className="py-2.5 flex items-center gap-2 font-medium text-foreground">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                                  {item.name}
+                                </TableCell>
+                                <TableCell className="py-2.5 text-right font-semibold text-foreground">{formatDZD(item.value)}</TableCell>
+                                <TableCell className="py-2.5 text-right text-muted-foreground">{percentage}%</TableCell>
+                                <TableCell className="py-2.5 text-right text-muted-foreground">{perBird} DA</TableCell>
+                                <TableCell className="py-2.5 text-right text-muted-foreground">{perKg} DA</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          {/* Summary Row */}
+                          <TableRow className="bg-muted/20 font-bold border-t border-border/50">
+                            <TableCell className="py-3.5 font-bold text-foreground">Total Production Cost</TableCell>
+                            <TableCell className="py-3.5 text-right text-primary font-extrabold">{formatDZD(totalCost)}</TableCell>
+                            <TableCell className="py-3.5 text-right font-bold text-foreground">100%</TableCell>
+                            <TableCell className="py-3.5 text-right text-muted-foreground font-semibold">{(totalCost / chicksBought).toFixed(1)} DA</TableCell>
+                            <TableCell className="py-3.5 text-right text-muted-foreground font-semibold">{totalMeatKg > 0 ? (totalCost / totalMeatKg).toFixed(1) : '0.0'} DA</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ gridColumn: '1 / -1' }}>
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold">Profit Sensitivity (Price/kg)</h3>
-                </div>
-                <div className="flex-1 w-full min-h-0">
+            {/* Profit Sensitivity Line Chart */}
+            <div className="grid grid-cols-1">
+              <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-xl rounded-2xl h-[400px] flex flex-col p-6 overflow-hidden page-break-inside-avoid">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                    <ChartIcon className="text-primary size-5" /> Profit Sensitivity (Price / kg)
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Simulate how market price fluctuations affect cycle profits relative to your break-even point.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 w-full min-h-0 p-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={sensitivityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="price" stroke="#94a3b8" />
                       <YAxis stroke="#94a3b8" tickFormatter={(val) => `${val / 1000}k`} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(value: number) => [formatDZD(value), "Profit"]} labelFormatter={(label) => `Selling Price: ${label} DZD/kg`} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--foreground)' }} formatter={(value: number) => [formatDZD(value), "Profit"]} labelFormatter={(label) => `Selling Price: ${label} DZD/kg`} />
                       <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
-                      <ReferenceLine x={sellingPrice} stroke="#8b5cf6" label={{ value: 'Current Price', fill: '#8b5cf6', position: 'top' }} />
+                      <ReferenceLine x={sellingPrice} stroke="var(--primary)" label={{ value: 'Current Price', fill: 'var(--primary)', position: 'top' }} />
                       <ReferenceLine x={breakEvenPrice} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Break-Even', fill: '#f59e0b', position: 'insideBottomRight' }} />
                       <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 8 }} />
                     </LineChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </main>
         </div>
@@ -842,19 +971,20 @@ const App = () => {
       {/* Save Scenario Modal Overlay */}
       {isSaveModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200 no-print">
-          <div className="w-full max-w-md p-6 bg-card border border-border rounded-xl shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold flex items-center gap-2 mb-2 text-card-foreground">
-              <Save className="text-primary" size={22} /> Save Scenario
+          <div className="w-full max-w-md p-6 bg-card border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold flex items-center gap-2 mb-2 text-foreground">
+              <Save className="text-primary size-5" /> Save Scenario
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               Enter a descriptive name for this simulation run to save it. You can load it back later from the dropdown.
             </p>
-            <div className="flex flex-col gap-2 mb-6">
+            <div className="flex flex-col gap-1.5 mb-6">
               <Label htmlFor="scenario-name" className="text-xs font-semibold text-muted-foreground uppercase">Scenario Name</Label>
               <Input 
                 id="scenario-name" 
                 placeholder="e.g. Summer Batch 2026" 
                 value={scenarioName} 
+                className="h-10 bg-background/50 border-border/80"
                 onChange={e => setScenarioName(e.target.value)}
                 autoFocus
                 onKeyDown={e => {
@@ -867,13 +997,14 @@ const App = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setIsSaveModalOpen(false)}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
               <Button 
                 onClick={confirmSaveScenario}
                 disabled={isSaving}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold cursor-pointer"
               >
                 {isSaving ? 'Saving...' : 'Save Scenario'}
               </Button>
