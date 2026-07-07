@@ -443,9 +443,9 @@ const App = () => {
       </Button>
     </div>
     
-    <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8" id="printable-area">
+    <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-4" id="printable-area">
           {/* Left Column: Inputs */}
-          <aside className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-6" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
+          <aside className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-4" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 150px)', position: 'sticky', top: '20px' }}>
             <h2 className="text-2xl font-bold flex items-center gap-3 mb-6"><Activity className="icon" size={20} /> Flock Details</h2>
             <div className="flex flex-col gap-2">
               <label>Starting Chicks <span>total</span></label>
@@ -546,8 +546,8 @@ const App = () => {
           </aside>
 
           {/* Right Column: Advanced KPIs and Charts */}
-          <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" style={{ marginBottom: 0 }}>
+          <main style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" style={{ marginBottom: 0 }}>
               <div className={`kpi-card ${profit > 0 ? 'success' : 'danger'}`}>
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><TrendingUp size={16} /> Net Profit / Loss</div>
                 <div className={`kpi-value ${profit > 0 ? 'success' : 'danger'}`}>
@@ -572,7 +572,7 @@ const App = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" style={{ marginBottom: 0 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" style={{ marginBottom: 0 }}>
               <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]" style={{ background: fcr <= 1.6 ? 'var(--success-bg)' : fcr >= 1.8 ? 'var(--danger-bg)' : 'var(--bg-card)'}}>
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Wheat size={16} /> Feed Conversion (FCR)</div>
                 <div className="text-4xl font-extrabold mt-2">{fcr.toFixed(2)}</div>
@@ -595,7 +595,7 @@ const App = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="rounded-xl border bg-card text-card-foreground shadow p-6 transition-all hover:shadow-lg" style={{ padding: '1.5rem' }}>
                 <h3 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
                   <Syringe className="icon" size={20} /> Suggested Medical Schedule
@@ -648,7 +648,7 @@ const App = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ gridColumn: '1 / -1' }}>
                 <div className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 className="text-xl font-bold">Daily Resources & Expected Growth Curve</h3>
