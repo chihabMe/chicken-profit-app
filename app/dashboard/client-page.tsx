@@ -646,55 +646,85 @@ const App = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 transition-all hover:shadow-lg" style={{ padding: '1.5rem' }}>
-                <h3 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
-                  <Syringe className="icon" size={20} /> Suggested Medical Schedule
+            <div className="rounded-xl border bg-card text-card-foreground shadow p-6 mb-8 page-break-inside-avoid">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Activity className="text-primary" size={20} /> Expense Distribution & Unit Cost Analysis
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
-                  {VACCINE_SCHEDULE.filter(v => v.day <= daysToSell).map((v, i) => {
-                    const actionDate = new Date(startDate);
-                    actionDate.setDate(actionDate.getDate() + v.day - 1);
-                    const isPast = new Date() > actionDate;
-                    const isToday = new Date().toDateString() === actionDate.toDateString();
-                    
-                    return (
-                      <div key={i} style={{ 
-                        display: 'flex', gap: '1rem', padding: '0.75rem', borderRadius: '8px',
-                        background: isToday ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-input)',
-                        borderLeft: `3px solid ${isToday ? 'var(--accent)' : isPast ? 'var(--success)' : 'var(--text-muted)'}`,
-                        opacity: isPast ? 0.7 : 1
-                      }}>
-                        <div style={{ fontWeight: 600, minWidth: '50px', color: isToday ? 'var(--accent)' : 'inherit' }}>Day {v.day}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{v.action}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            {actionDate.toLocaleDateString('en-GB')}
-                          </div>
-                        </div>
-                        {isPast && !isToday && <CheckCircle2 size={16} color="var(--success)" />}
-                      </div>
-                    );
-                  })}
-                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Visual breakdown of production costs correlated to unit economics
+                </p>
               </div>
-
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ height: 'auto' }}>
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold">Expense Distribution</h3>
-                </div>
-                <div className="flex-1 w-full min-h-0" style={{ height: '300px' }}>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                {/* Donut Chart Column */}
+                <div className="lg:col-span-5 flex justify-center items-center h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={costBreakdownData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                      <Pie 
+                        data={costBreakdownData} 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius={70} 
+                        outerRadius={105} 
+                        paddingAngle={4} 
+                        dataKey="value"
+                      >
                         {costBreakdownData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <RechartsTooltip formatter={(value: number) => formatDZD(value)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
+                      <RechartsTooltip 
+                        formatter={(value: number) => formatDZD(value)} 
+                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} 
+                      />
                     </PieChart>
                   </ResponsiveContainer>
+                </div>
+                
+                {/* Metrics Table Column */}
+                <div className="lg:col-span-7">
+                  <div className="border rounded-lg overflow-hidden bg-background/50">
+                    <Table>
+                      <TableHeader className="bg-muted/40">
+                        <TableRow>
+                          <TableHead className="py-2.5 font-semibold text-xs">Cost Component</TableHead>
+                          <TableHead className="py-2.5 text-right font-semibold text-xs">Total Cost</TableHead>
+                          <TableHead className="py-2.5 text-right font-semibold text-xs">% Total</TableHead>
+                          <TableHead className="py-2.5 text-right font-semibold text-xs">Per Bird</TableHead>
+                          <TableHead className="py-2.5 text-right font-semibold text-xs">Per kg</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {costBreakdownData.map((item, index) => {
+                          const percentage = totalCost > 0 ? ((item.value / totalCost) * 100).toFixed(1) : '0.0';
+                          const perBird = (item.value / chicksBought).toFixed(1);
+                          const perKg = totalMeatKg > 0 ? (item.value / totalMeatKg).toFixed(1) : '0.0';
+                          
+                          return (
+                            <TableRow key={item.name} className="hover:bg-accent/30 transition-colors">
+                              <TableCell className="py-2 flex items-center gap-2 font-medium">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                                {item.name}
+                              </TableCell>
+                              <TableCell className="py-2 text-right font-semibold">{formatDZD(item.value)}</TableCell>
+                              <TableCell className="py-2 text-right text-muted-foreground">{percentage}%</TableCell>
+                              <TableCell className="py-2 text-right text-muted-foreground">{perBird} DA</TableCell>
+                              <TableCell className="py-2 text-right text-muted-foreground">{perKg} DA</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        {/* Summary Row */}
+                        <TableRow className="bg-muted/30 font-bold border-t-2">
+                          <TableCell className="py-3 font-semibold">Total Production Cost</TableCell>
+                          <TableCell className="py-3 text-right text-primary font-semibold">{formatDZD(totalCost)}</TableCell>
+                          <TableCell className="py-3 text-right font-semibold">100%</TableCell>
+                          <TableCell className="py-3 text-right text-muted-foreground font-semibold">{(totalCost / chicksBought).toFixed(1)} DA</TableCell>
+                          <TableCell className="py-3 text-right text-muted-foreground font-semibold">{totalMeatKg > 0 ? (totalCost / totalMeatKg).toFixed(1) : '0.0'} DA</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             </div>
