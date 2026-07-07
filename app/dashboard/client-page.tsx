@@ -148,13 +148,17 @@ const App = () => {
   const [avgWeight, setAvgWeight] = useState(2.5); // kg
 
   // Inputs: Costs
-  const [inputMode, setInputMode] = useState<'per-chick' | 'total'>('per-chick');
   const [chickCost, setChickCost] = useState(150); // DZD
+  const [chickCostMode, setChickCostMode] = useState<'per-chick' | 'total'>('per-chick');
   const [feedConsumedPerChick, setFeedConsumedPerChick] = useState(3.8); // kg
+  const [feedConsumedMode, setFeedConsumedMode] = useState<'per-chick' | 'total'>('per-chick');
   const [feedPricePerKg, setFeedPricePerKg] = useState(80); // DZD
-  const [medicationCost, setMedicationCost] = useState(15); // DZD per chick
-  const [energyCost, setEnergyCost] = useState(20); // Heating/Electricity DZD per chick
+  const [medicationCost, setMedicationCost] = useState(15); // DZD
+  const [medicationCostMode, setMedicationCostMode] = useState<'per-chick' | 'total'>('per-chick');
+  const [energyCost, setEnergyCost] = useState(20); // Heating/Electricity DZD
+  const [energyCostMode, setEnergyCostMode] = useState<'per-chick' | 'total'>('per-chick');
   const [laborCostCycle, setLaborCostCycle] = useState(30000); // Total labor cost for the cycle DZD
+  const [laborCostMode, setLaborCostMode] = useState<'per-chick' | 'total'>('total');
   
   // Historical Data State
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
@@ -174,8 +178,10 @@ const App = () => {
 
     setIsSaving(true);
     const data = {
-      inputMode, chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
-      chickCost, feedConsumedPerChick, feedPricePerKg, medicationCost, energyCost, laborCostCycle
+      chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
+      chickCost, chickCostMode, feedConsumedPerChick, feedConsumedMode,
+      feedPricePerKg, medicationCost, medicationCostMode, energyCost, energyCostMode, 
+      laborCostCycle, laborCostMode
     };
 
     try {
@@ -195,17 +201,21 @@ const App = () => {
     const simData = JSON.parse(e.target.value);
     
     setChicksBought(simData.chicksBought ?? 1000);
-    setInputMode(simData.inputMode ?? 'per-chick');
     setMortalityRate(simData.mortalityRate ?? 5);
     setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
     setDaysToSell(simData.daysToSell ?? 45);
     setAvgWeight(simData.avgWeight ?? 2.5);
     setChickCost(simData.chickCost ?? 150);
+    setChickCostMode(simData.chickCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
     setFeedConsumedPerChick(simData.feedConsumedPerChick ?? 3.8);
+    setFeedConsumedMode(simData.feedConsumedMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
     setFeedPricePerKg(simData.feedPricePerKg ?? 80);
     setMedicationCost(simData.medicationCost ?? 15);
+    setMedicationCostMode(simData.medicationCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
     setEnergyCost(simData.energyCost ?? 20);
+    setEnergyCostMode(simData.energyCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
     setLaborCostCycle(simData.laborCostCycle ?? 30000);
+    setLaborCostMode(simData.laborCostMode ?? 'total');
   };
 
   // Dates calculation
@@ -274,18 +284,19 @@ const App = () => {
   const totalMeatKg = useMemo(() => survivedChicks * avgWeight, [survivedChicks, avgWeight]);
   
   // Cost breakdown
-  const totalChickCost = inputMode === 'per-chick' ? chicksBought * chickCost : chickCost;
+  const totalChickCost = chickCostMode === 'per-chick' ? chicksBought * chickCost : chickCost;
   
-  const totalFeedKg = inputMode === 'per-chick' 
+  const totalFeedKg = feedConsumedMode === 'per-chick' 
     ? (survivedChicks * feedConsumedPerChick) + ((chicksBought - survivedChicks) * (feedConsumedPerChick / 2))
     : feedConsumedPerChick;
     
   const feedCostTotal = totalFeedKg * feedPricePerKg;
   
-  const totalMedsCost = inputMode === 'per-chick' ? chicksBought * medicationCost : medicationCost;
-  const totalEnergyCost = inputMode === 'per-chick' ? chicksBought * energyCost : energyCost;
+  const totalMedsCost = medicationCostMode === 'per-chick' ? chicksBought * medicationCost : medicationCost;
+  const totalEnergyCost = energyCostMode === 'per-chick' ? chicksBought * energyCost : energyCost;
+  const totalLaborCost = laborCostMode === 'per-chick' ? chicksBought * laborCostCycle : laborCostCycle;
   
-  const totalCost = totalChickCost + feedCostTotal + totalMedsCost + totalEnergyCost + laborCostCycle;
+  const totalCost = totalChickCost + feedCostTotal + totalMedsCost + totalEnergyCost + totalLaborCost;
   
   const totalRevenue = totalMeatKg * sellingPrice;
   const profit = totalRevenue - totalCost;
@@ -308,13 +319,13 @@ const App = () => {
       ["Start Date", startDate],
       ["Days to Sell", daysToSell],
       ["Avg Sale Weight (kg)", avgWeight],
-      ["Input Mode", inputMode === 'per-chick' ? 'Per Chick' : 'Total Flock'],
-      [`Chick Purchase Price (DZD ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, chickCost],
-      [`Feed Consumed (kg ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, feedConsumedPerChick],
+      ["Input Mode", "Custom"],
+      [`Chick Purchase Price (DZD)`, chickCost],
+      [`Feed Consumed (kg)`, feedConsumedPerChick],
       ["Feed Price (DZD / kg)", feedPricePerKg],
-      [`Meds/Vaccines (DZD ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, medicationCost],
-      [`Energy (DZD ${inputMode === 'per-chick' ? 'per chick' : 'total'})`, energyCost],
-      ["Cycle Labor Total (DZD)", laborCostCycle],
+      [`Meds/Vaccines (DZD)`, medicationCost],
+      [`Energy (DZD)`, energyCost],
+      ["Cycle Labor (DZD)", laborCostCycle],
       ["", ""],
       ["Metric", "Value"],
       ["Survived Chicks", survivedChicks],
@@ -346,7 +357,7 @@ const App = () => {
     { name: 'Feed', value: feedCostTotal },
     { name: 'Meds & Vaccines', value: totalMedsCost },
     { name: 'Energy', value: totalEnergyCost },
-    { name: 'Labor', value: laborCostCycle },
+    { name: 'Labor', value: totalLaborCost },
   ];
 
   const sensitivityData = useMemo(() => {
@@ -364,7 +375,7 @@ const App = () => {
     const data = [];
     
     // Determine the average feed per chick assuming normal growth pattern
-    const feedPerChickBasis = inputMode === 'per-chick' 
+    const feedPerChickBasis = feedConsumedMode === 'per-chick' 
       ? feedConsumedPerChick 
       : feedConsumedPerChick / (survivedChicks + (chicksBought - survivedChicks) * 0.5);
 
@@ -384,7 +395,7 @@ const App = () => {
       });
     }
     return data;
-  }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight, inputMode]);
+  }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight, feedConsumedMode]);
 
   const [macroMarketData, setMacroMarketData] = useState<any[]>([]);
   const [marketRange, setMarketRange] = useState(6);
@@ -474,47 +485,56 @@ const App = () => {
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: 0 }}><Calculator className="icon" size={20} /> Costs</h2>
-              <div style={{ display: 'flex', background: 'var(--bg-input)', borderRadius: '8px', padding: '4px' }}>
-                <Button 
-                  onClick={() => setInputMode('per-chick')}
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: inputMode === 'per-chick' ? 'var(--accent)' : 'transparent', color: inputMode === 'per-chick' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: '0.2s' }}
-                >
-                  Per Chick
-                </Button>
-                <Button 
-                  onClick={() => setInputMode('total')}
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: inputMode === 'total' ? 'var(--accent)' : 'transparent', color: inputMode === 'total' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: '0.2s' }}
-                >
-                  Total Flock
-                </Button>
-              </div>
-            </div>
+            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: '1.5rem' }}><Calculator className="icon" size={20} /> Costs</h2>
             
             <div className="flex flex-col gap-2">
-              <label>Chick Purchase {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
-              <Input type="number"   value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-muted-foreground uppercase">Chick Purchase <span className="unit">DZD</span></label>
+                <select value={chickCostMode} onChange={e => setChickCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
+                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
+                </select>
+              </div>
+              <Input type="number" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
-              <label>Feed Consumed {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">kg</span></label>
-              <Input type="number" step="0.1"   value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-muted-foreground uppercase">Feed Consumed <span className="unit">kg</span></label>
+                <select value={feedConsumedMode} onChange={e => setFeedConsumedMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
+                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
+                </select>
+              </div>
+              <Input type="number" step="0.1" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
-              <label>Feed Price <span className="unit">DZD / kg</span></label>
-              <Input type="number"   value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
+              <label className="text-sm font-semibold text-muted-foreground uppercase">Feed Price <span className="unit">DZD / kg</span></label>
+              <Input type="number" value={feedPricePerKg} onChange={e => setFeedPricePerKg(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
-              <label>Meds/Vaccines {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
-              <Input type="number"   value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-muted-foreground uppercase">Meds/Vaccines <span className="unit">DZD</span></label>
+                <select value={medicationCostMode} onChange={e => setMedicationCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
+                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
+                </select>
+              </div>
+              <Input type="number" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
-              <label>Energy {inputMode === 'per-chick' ? '(Per Chick)' : '(Total)'} <span className="unit">DZD</span></label>
-              <Input type="number"   value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-muted-foreground uppercase">Energy <span className="unit">DZD</span></label>
+                <select value={energyCostMode} onChange={e => setEnergyCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
+                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
+                </select>
+              </div>
+              <Input type="number" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
-              <label>Cycle Labor (Total) <span className="unit">DZD</span></label>
-              <Input type="number"   value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-muted-foreground uppercase">Cycle Labor <span className="unit">DZD</span></label>
+                <select value={laborCostMode} onChange={e => setLaborCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
+                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
+                </select>
+              </div>
+              <Input type="number" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', margin: '1rem 0' }}></div>
@@ -555,17 +575,17 @@ const App = () => {
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">Margin: {profitMargin}% | ROI: {roi}%</div>
               </div>
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+              <div className="kpi-card warning">
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Target size={16} /> Break-Even Price</div>
-                <div className="text-4xl font-extrabold mt-2">{Math.round(breakEvenPrice)} DZD/kg</div>
+                <div className="kpi-value warning">{Math.round(breakEvenPrice)} DZD/kg</div>
                 <div className="text-sm text-muted-foreground mt-1">Must sell above this to profit</div>
               </div>
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+              <div className="kpi-card success">
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Activity size={16} /> Total Revenue</div>
                 <div className="kpi-value success">{formatDZD(totalRevenue)}</div>
                 <div className="text-sm text-muted-foreground mt-1">From {totalMeatKg.toLocaleString()} kg meat</div>
               </div>
-              <div className="kpi-card warning">
+              <div className="kpi-card danger">
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><AlertTriangle size={16} /> Total Expenses</div>
                 <div className="kpi-value danger">{formatDZD(totalCost)}</div>
                 <div className="text-sm text-muted-foreground mt-1">All operational costs</div>
@@ -573,29 +593,29 @@ const App = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" style={{ marginBottom: 0 }}>
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]" style={{ background: fcr <= 1.6 ? 'var(--success-bg)' : fcr >= 1.8 ? 'var(--danger-bg)' : 'var(--bg-card)'}}>
+              <div className={`kpi-card ${fcr <= 1.6 ? 'success' : fcr >= 1.8 ? 'danger' : 'warning'}`}>
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Wheat size={16} /> Feed Conversion (FCR)</div>
-                <div className="text-4xl font-extrabold mt-2">{fcr.toFixed(2)}</div>
+                <div className={`kpi-value ${fcr <= 1.6 ? 'success' : fcr >= 1.8 ? 'danger' : 'warning'}`}>{fcr.toFixed(2)}</div>
                 <div className="text-sm text-muted-foreground mt-1">kg of feed per kg of meat</div>
               </div>
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+              <div className="kpi-card success">
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><CheckCircle2 size={16} /> Survived / Yield</div>
-                <div className="text-4xl font-extrabold mt-2">{survivedChicks.toLocaleString()}</div>
+                <div className="kpi-value success">{survivedChicks.toLocaleString()}</div>
                 <div className="text-sm text-muted-foreground mt-1">{Math.floor((survivedChicks/chicksBought)*100)}% Livability</div>
               </div>
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+              <div className="kpi-card" style={{ '--accent-gradient': 'linear-gradient(135deg, #0ea5e9, #3b82f6)' } as React.CSSProperties}>
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><Droplet size={16} /> Est. Water Needed</div>
-                <div className="text-4xl font-extrabold mt-2">{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
+                <div className="kpi-value" style={{ color: '#0ea5e9' }}>{(survivedChicks * feedConsumedPerChick * 2).toLocaleString()} L</div>
                 <div className="text-sm text-muted-foreground mt-1">For the entire cycle</div>
               </div>
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 relative overflow-hidden transition-all hover:scale-[1.02]">
+              <div className="kpi-card">
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 uppercase tracking-wide"><CalendarDays size={16} /> Sale Target Date</div>
-                <div className="text-4xl font-extrabold mt-2" style={{ fontSize: '1.25rem' }}>{endDateDisplay}</div>
+                <div className="kpi-value">{endDateDisplay}</div>
                 <div className="text-sm text-muted-foreground mt-1">In exactly {daysToSell} days</div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="rounded-xl border bg-card text-card-foreground shadow p-6 transition-all hover:shadow-lg" style={{ padding: '1.5rem' }}>
                 <h3 className="text-2xl font-bold flex items-center gap-3 mb-6" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
                   <Syringe className="icon" size={20} /> Suggested Medical Schedule
@@ -649,28 +669,6 @@ const App = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ gridColumn: '1 / -1' }}>
-                <div className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 className="text-xl font-bold">Daily Resources & Expected Growth Curve</h3>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>*Based on S-Curve model for {avgWeight}kg target</span>
-                </div>
-                <div className="flex-1 w-full min-h-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={resourceData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="day" stroke="#94a3b8" minTickGap={5} />
-                      <YAxis yAxisId="left" stroke="#94a3b8" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="waterLiters" name="Water (Liters/Day)" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
-                      <Area yAxisId="left" type="monotone" dataKey="feedKg" name="Feed (Kg/Day)" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.4)" />
-                      <Line yAxisId="right" type="monotone" dataKey="weightGrams" name="Exp. Weight/Bird (Grams)" stroke="#10b981" strokeWidth={3} dot={false} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
               <div className="rounded-xl border bg-card text-card-foreground shadow p-6 h-[400px] flex flex-col" style={{ gridColumn: '1 / -1' }}>
                 <div className="mb-6">
                   <h3 className="text-xl font-bold">Profit Sensitivity (Price/kg)</h3>
