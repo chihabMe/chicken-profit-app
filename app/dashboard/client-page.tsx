@@ -43,6 +43,7 @@ const App = () => {
   const { data: session, status } = useSession();
   const [savedSimulations, setSavedSimulations] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('');
 
   // Custom Save Modal State
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -160,8 +161,13 @@ const App = () => {
 
   const handleLoadScenarioValue = (value: string | null) => {
     if (!value) return;
+    setSelectedScenarioId(value);
+    
+    const selectedSim = savedSimulations.find(s => s.id.toString() === value);
+    if (!selectedSim) return;
+    
     try {
-      const simData = JSON.parse(value);
+      const simData = selectedSim.data;
       setChicksBought(simData.chicksBought ?? 1000);
       setMortalityRate(simData.mortalityRate ?? 5);
       setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
@@ -178,7 +184,7 @@ const App = () => {
       setEnergyCostMode(simData.energyCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
       setLaborCostCycle(simData.laborCostCycle ?? 30000);
       setLaborCostMode(simData.laborCostMode ?? 'total');
-      toast.success("Scenario loaded successfully!");
+      toast.success(`Loaded scenario: ${selectedSim.name}`);
     } catch (e) {
       toast.error("Failed to load scenario.");
     }
@@ -425,7 +431,7 @@ const App = () => {
 
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-4 bg-card border border-border rounded-xl shadow-xs mb-6 no-print">
         <div className="w-full sm:w-auto flex-1 max-w-md">
-          <Select onValueChange={handleLoadScenarioValue}>
+          <Select value={selectedScenarioId} onValueChange={handleLoadScenarioValue}>
             <SelectTrigger className="w-full bg-input/40 h-10 border-border">
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <FolderOpen size={16} />
@@ -434,7 +440,7 @@ const App = () => {
             </SelectTrigger>
             <SelectContent>
               {savedSimulations.map(sim => (
-                <SelectItem key={sim.id} value={JSON.stringify(sim.data)}>
+                <SelectItem key={sim.id} value={sim.id.toString()}>
                   {sim.name} ({new Date(sim.createdAt).toLocaleDateString()})
                 </SelectItem>
               ))}
