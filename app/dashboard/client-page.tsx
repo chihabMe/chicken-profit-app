@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import { runProfitCalculations } from '../../lib/calculations';
 
 interface PriceData {
   date: string;
@@ -244,33 +245,60 @@ const App = () => {
   const sellingPrice = manualSellingPrice !== null ? manualSellingPrice : autoSellingPrice;
   const isAutoPrice = manualSellingPrice === null;
 
-  // Advanced Calculations
-  const survivedChicks = useMemo(() => Math.floor(chicksBought * (1 - mortalityRate / 100)), [chicksBought, mortalityRate]);
-  const totalMeatKg = useMemo(() => survivedChicks * avgWeight, [survivedChicks, avgWeight]);
-  
-  // Cost breakdown
-  const totalChickCost = chickCostMode === 'per-chick' ? chicksBought * chickCost : chickCost;
-  
-  const totalFeedKg = feedConsumedMode === 'per-chick' 
-    ? (survivedChicks * feedConsumedPerChick) + ((chicksBought - survivedChicks) * (feedConsumedPerChick / 2))
-    : feedConsumedPerChick;
-    
-  const feedCostTotal = totalFeedKg * feedPricePerKg;
-  
-  const totalMedsCost = medicationCostMode === 'per-chick' ? chicksBought * medicationCost : medicationCost;
-  const totalEnergyCost = energyCostMode === 'per-chick' ? chicksBought * energyCost : energyCost;
-  const totalLaborCost = laborCostMode === 'per-chick' ? chicksBought * laborCostCycle : laborCostCycle;
-  
-  const totalCost = totalChickCost + feedCostTotal + totalMedsCost + totalEnergyCost + totalLaborCost;
-  
-  const totalRevenue = totalMeatKg * sellingPrice;
-  const profit = totalRevenue - totalCost;
-  
-  // KPIs
-  const roi = ((profit / totalCost) * 100).toFixed(1);
-  const profitMargin = ((profit / totalRevenue) * 100).toFixed(1);
-  const breakEvenPrice = totalCost / totalMeatKg;
-  const fcr = totalFeedKg / totalMeatKg;
+  // Advanced Calculations & Costs
+  const calcResults = useMemo(() => {
+    return runProfitCalculations({
+      chicksBought,
+      mortalityRate,
+      avgWeight,
+      chickCost,
+      chickCostMode,
+      feedConsumedPerChick,
+      feedConsumedMode,
+      feedPricePerKg,
+      medicationCost,
+      medicationCostMode,
+      energyCost,
+      energyCostMode,
+      laborCostCycle,
+      laborCostMode,
+      sellingPrice
+    });
+  }, [
+    chicksBought,
+    mortalityRate,
+    avgWeight,
+    chickCost,
+    chickCostMode,
+    feedConsumedPerChick,
+    feedConsumedMode,
+    feedPricePerKg,
+    medicationCost,
+    medicationCostMode,
+    energyCost,
+    energyCostMode,
+    laborCostCycle,
+    laborCostMode,
+    sellingPrice
+  ]);
+
+  const {
+    survivedChicks,
+    totalMeatKg,
+    totalChickCost,
+    totalFeedKg,
+    feedCostTotal,
+    totalMedsCost,
+    totalEnergyCost,
+    totalLaborCost,
+    totalCost,
+    totalRevenue,
+    profit,
+    roi,
+    profitMargin,
+    breakEvenPrice,
+    fcr
+  } = calcResults;
 
   const handlePrint = () => {
     window.print();
