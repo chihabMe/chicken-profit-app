@@ -43,55 +43,9 @@ const App = () => {
   const [savedSimulations, setSavedSimulations] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Custom Auth State
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authError, setAuthError] = useState('');
-
-  const handleLogin = async () => {
-    setAuthError('');
-    if (!authEmail || !authPassword) {
-      setAuthError("Enter email and password!");
-      return;
-    }
-    const res = await signIn('credentials', { 
-      email: authEmail, 
-      password: authPassword,
-      redirect: false
-    });
-    
-    if (res?.error) {
-      setAuthError("Invalid email or password");
-    }
-  };
-
-  const [showSettings, setShowSettings] = useState(false);
-
-  const handleInviteUser = async () => {
-    const email = prompt("Enter the email of the user to invite:");
-    if (!email) return;
-    const res = await fetch('/api/users/invite', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (res.ok) toast.success(data.message);
-    else toast.error(data.error);
-  };
-
-  const handleChangePassword = async () => {
-    const newPassword = prompt("Enter your new password (min 6 characters):");
-    if (!newPassword) return;
-    const res = await fetch('/api/users/change-password', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ newPassword })
-    });
-    if (res.ok) toast.success("Password changed successfully!");
-    else toast.error("Failed to change password.");
-  };
+  // Custom Save Modal State
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [scenarioName, setScenarioName] = useState('');
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'market' | 'logger'>('dashboard');
 
@@ -173,9 +127,15 @@ const App = () => {
 
   const handleSaveScenario = async () => {
     if (!session) return;
-    const simName = prompt("Enter a name for this scenario (e.g. Summer Batch 2026):");
-    if (!simName) return;
+    setScenarioName('');
+    setIsSaveModalOpen(true);
+  };
 
+  const confirmSaveScenario = async () => {
+    if (!scenarioName.trim()) {
+      toast.error("Please enter a name for the scenario");
+      return;
+    }
     setIsSaving(true);
     const data = {
       chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
@@ -185,10 +145,11 @@ const App = () => {
     };
 
     try {
-      await saveSimulation(simName, data);
+      await saveSimulation(scenarioName, data);
       const updated = await getSimulations();
       setSavedSimulations(updated);
       toast.success("Scenario saved successfully!");
+      setIsSaveModalOpen(false);
     } catch (err) {
       toast.error("Failed to save scenario.");
     } finally {
@@ -196,26 +157,30 @@ const App = () => {
     }
   };
 
-  const handleLoadScenario = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!e.target.value) return;
-    const simData = JSON.parse(e.target.value);
-    
-    setChicksBought(simData.chicksBought ?? 1000);
-    setMortalityRate(simData.mortalityRate ?? 5);
-    setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
-    setDaysToSell(simData.daysToSell ?? 45);
-    setAvgWeight(simData.avgWeight ?? 2.5);
-    setChickCost(simData.chickCost ?? 150);
-    setChickCostMode(simData.chickCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
-    setFeedConsumedPerChick(simData.feedConsumedPerChick ?? 3.8);
-    setFeedConsumedMode(simData.feedConsumedMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
-    setFeedPricePerKg(simData.feedPricePerKg ?? 80);
-    setMedicationCost(simData.medicationCost ?? 15);
-    setMedicationCostMode(simData.medicationCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
-    setEnergyCost(simData.energyCost ?? 20);
-    setEnergyCostMode(simData.energyCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
-    setLaborCostCycle(simData.laborCostCycle ?? 30000);
-    setLaborCostMode(simData.laborCostMode ?? 'total');
+  const handleLoadScenarioValue = (value: string | null) => {
+    if (!value) return;
+    try {
+      const simData = JSON.parse(value);
+      setChicksBought(simData.chicksBought ?? 1000);
+      setMortalityRate(simData.mortalityRate ?? 5);
+      setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
+      setDaysToSell(simData.daysToSell ?? 45);
+      setAvgWeight(simData.avgWeight ?? 2.5);
+      setChickCost(simData.chickCost ?? 150);
+      setChickCostMode(simData.chickCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
+      setFeedConsumedPerChick(simData.feedConsumedPerChick ?? 3.8);
+      setFeedConsumedMode(simData.feedConsumedMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
+      setFeedPricePerKg(simData.feedPricePerKg ?? 80);
+      setMedicationCost(simData.medicationCost ?? 15);
+      setMedicationCostMode(simData.medicationCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
+      setEnergyCost(simData.energyCost ?? 20);
+      setEnergyCostMode(simData.energyCostMode ?? (simData.inputMode === 'total' ? 'total' : 'per-chick'));
+      setLaborCostCycle(simData.laborCostCycle ?? 30000);
+      setLaborCostMode(simData.laborCostMode ?? 'total');
+      toast.success("Scenario loaded successfully!");
+    } catch (e) {
+      toast.error("Failed to load scenario.");
+    }
   };
 
   // Dates calculation
@@ -422,37 +387,73 @@ const App = () => {
 
   return (
     <>
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', background: 'var(--bg-card)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-      <select 
-        onChange={handleLoadScenario} 
-        style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.6rem', borderRadius: '6px', outline: 'none', flex: 1 }}
-      >
-        <option value="">📁 Load Saved Scenario...</option>
-        {savedSimulations.map(sim => (
-          <option key={sim.id} value={JSON.stringify(sim.data)}>
-            {sim.name} ({new Date(sim.createdAt).toLocaleDateString()})
-          </option>
-        ))}
-      </select>
+      {/* Print-only Header */}
+      <div className="hidden print:block mb-8 border-b-2 border-primary pb-4">
+        <h1 className="text-3xl font-extrabold text-foreground">Poultry Farm Pro — Profit Simulation Report</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Generated on {new Date().toLocaleDateString('en-GB')} | Flock Start: {new Date(startDate).toLocaleDateString('en-GB')}
+        </p>
+      </div>
 
-      <Button onClick={handleSaveScenario}
-        disabled={isSaving}
-         variant="outline" 
-        style={{ background: 'var(--success-bg)', borderColor: 'var(--success)', color: 'var(--success)' }}
-      >
-        <Save size={18} /> {isSaving ? 'Saving...' : 'Save Scenario'}
-      </Button>
-      <Button onClick={handlePrint}
-         variant="outline" 
-      >
-        <Printer size={18} /> Print / Save PDF
-      </Button>
-      <Button onClick={handleExportCSV}
-         variant="outline" 
-      >
-        <Download size={18} /> Export CSV
-      </Button>
-    </div>
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-4 bg-card border border-border rounded-xl shadow-xs mb-6 no-print">
+        <div className="w-full sm:w-auto flex-1 max-w-md">
+          <Select onValueChange={handleLoadScenarioValue}>
+            <SelectTrigger className="w-full bg-input/40 h-10 border-border">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <FolderOpen size={16} />
+                <SelectValue placeholder="Load Saved Scenario..." />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {savedSimulations.map(sim => (
+                <SelectItem key={sim.id} value={JSON.stringify(sim.data)}>
+                  {sim.name} ({new Date(sim.createdAt).toLocaleDateString()})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-end">
+          <Button onClick={handleSaveScenario}
+            disabled={isSaving}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2"
+          >
+            <Save size={16} /> Save Scenario
+          </Button>
+          <Button onClick={handlePrint}
+            variant="outline"
+            className="border-primary/30 hover:bg-primary/10 text-primary font-semibold flex items-center gap-2"
+          >
+            <Printer size={16} /> Print / Save PDF
+          </Button>
+          <Button onClick={handleExportCSV}
+            variant="outline"
+            className="border-border hover:bg-accent flex items-center gap-2"
+          >
+            <Download size={16} /> Export CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* Print-only Parameters Summary */}
+      <div className="hidden print:grid grid-cols-2 gap-6 border rounded-xl p-6 bg-muted/10 mb-8 page-break-inside-avoid">
+        <div>
+          <h3 className="font-bold border-b pb-2 mb-3">Flock Details & Timeline</h3>
+          <div className="flex justify-between py-1 text-sm"><span>Starting Chicks:</span><span className="font-semibold">{chicksBought.toLocaleString()}</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Est. Mortality Rate:</span><span className="font-semibold">{mortalityRate}%</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Avg Sale Weight:</span><span className="font-semibold">{avgWeight} kg</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Start Date:</span><span className="font-semibold">{new Date(startDate).toLocaleDateString('en-GB')}</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Days to Sell:</span><span className="font-semibold">{daysToSell} days ({endDateDisplay})</span></div>
+        </div>
+        <div>
+          <h3 className="font-bold border-b pb-2 mb-3">Cost Configuration</h3>
+          <div className="flex justify-between py-1 text-sm"><span>Chick Purchase:</span><span className="font-semibold">{formatDZD(chickCost)} ({chickCostMode === 'per-chick' ? 'Per Chick' : 'Total'})</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Feed Price & Quantity:</span><span className="font-semibold">{feedPricePerKg} DZD/kg | {feedConsumedPerChick} kg ({feedConsumedMode === 'per-chick' ? 'Per Chick' : 'Total'})</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Meds/Vaccines:</span><span className="font-semibold">{formatDZD(medicationCost)} ({medicationCostMode === 'per-chick' ? 'Per Chick' : 'Total'})</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Energy:</span><span className="font-semibold">{formatDZD(energyCost)} ({energyCostMode === 'per-chick' ? 'Per Chick' : 'Total'})</span></div>
+          <div className="flex justify-between py-1 text-sm"><span>Cycle Labor:</span><span className="font-semibold">{formatDZD(laborCostCycle)} ({laborCostMode === 'per-chick' ? 'Per Chick' : 'Total'})</span></div>
+        </div>
+      </div>
     
     <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-4" id="printable-area">
           {/* Left Column: Inputs */}
@@ -490,18 +491,30 @@ const App = () => {
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-muted-foreground uppercase">Chick Purchase <span className="unit">DZD</span></label>
-                <select value={chickCostMode} onChange={e => setChickCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
-                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
-                </select>
+                <Select value={chickCostMode} onValueChange={(val: any) => setChickCostMode(val)}>
+                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="per-chick">Per Chick</SelectItem>
+                    <SelectItem value="total">Total</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Input type="number" value={chickCost} onChange={e => setChickCost(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-muted-foreground uppercase">Feed Consumed <span className="unit">kg</span></label>
-                <select value={feedConsumedMode} onChange={e => setFeedConsumedMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
-                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
-                </select>
+                <Select value={feedConsumedMode} onValueChange={(val: any) => setFeedConsumedMode(val)}>
+                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="per-chick">Per Chick</SelectItem>
+                    <SelectItem value="total">Total</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Input type="number" step="0.1" value={feedConsumedPerChick} onChange={e => setFeedConsumedPerChick(Number(e.target.value))} />
             </div>
@@ -512,27 +525,45 @@ const App = () => {
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-muted-foreground uppercase">Meds/Vaccines <span className="unit">DZD</span></label>
-                <select value={medicationCostMode} onChange={e => setMedicationCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
-                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
-                </select>
+                <Select value={medicationCostMode} onValueChange={(val: any) => setMedicationCostMode(val)}>
+                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="per-chick">Per Chick</SelectItem>
+                    <SelectItem value="total">Total</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Input type="number" value={medicationCost} onChange={e => setMedicationCost(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-muted-foreground uppercase">Energy <span className="unit">DZD</span></label>
-                <select value={energyCostMode} onChange={e => setEnergyCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
-                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
-                </select>
+                <Select value={energyCostMode} onValueChange={(val: any) => setEnergyCostMode(val)}>
+                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="per-chick">Per Chick</SelectItem>
+                    <SelectItem value="total">Total</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Input type="number" value={energyCost} onChange={e => setEnergyCost(Number(e.target.value))} />
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-muted-foreground uppercase">Cycle Labor <span className="unit">DZD</span></label>
-                <select value={laborCostMode} onChange={e => setLaborCostMode(e.target.value as any)} className="text-xs bg-muted border rounded px-2 py-1 outline-none text-muted-foreground cursor-pointer">
-                  <option value="per-chick">Per Chick</option><option value="total">Total</option>
-                </select>
+                <Select value={laborCostMode} onValueChange={(val: any) => setLaborCostMode(val)}>
+                  <SelectTrigger className="w-[110px] h-7 text-xs bg-muted border-none">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="per-chick">Per Chick</SelectItem>
+                    <SelectItem value="total">Total</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Input type="number" value={laborCostCycle} onChange={e => setLaborCostCycle(Number(e.target.value))} />
             </div>
@@ -691,6 +722,49 @@ const App = () => {
             </div>
           </main>
         </div>
+
+      {/* Save Scenario Modal Overlay */}
+      {isSaveModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200 no-print">
+          <div className="w-full max-w-md p-6 bg-card border border-border rounded-xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold flex items-center gap-2 mb-2 text-card-foreground">
+              <Save className="text-primary" size={22} /> Save Scenario
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter a descriptive name for this simulation run to save it. You can load it back later from the dropdown.
+            </p>
+            <div className="flex flex-col gap-2 mb-6">
+              <Label htmlFor="scenario-name" className="text-xs font-semibold text-muted-foreground uppercase">Scenario Name</Label>
+              <Input 
+                id="scenario-name" 
+                placeholder="e.g. Summer Batch 2026" 
+                value={scenarioName} 
+                onChange={e => setScenarioName(e.target.value)}
+                autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter') confirmSaveScenario();
+                  if (e.key === 'Escape') setIsSaveModalOpen(false);
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsSaveModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmSaveScenario}
+                disabled={isSaving}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              >
+                {isSaving ? 'Saving...' : 'Save Scenario'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

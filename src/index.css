@@ -567,8 +567,7 @@ select.form-input {
 }
 
 @media print {
-  /* Hide non-printable elements */
-  .btn, .tabs, header, .auth-container, select {
+  .btn, .tabs, header, .auth-container, select, button, aside, .no-print {
     display: none !important;
   }
 

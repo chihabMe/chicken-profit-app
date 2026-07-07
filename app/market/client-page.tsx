@@ -1,450 +1,511 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
 import { 
-  Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
-  LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend, ComposedChart, Bar
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
+  Line, BarChart, Bar, Legend, ComposedChart
 } from 'recharts';
 import { 
-  TrendingUp, AlertTriangle, Activity, CheckCircle2, Calculator, CalendarDays, 
-  Database, Wheat, Target, Droplet, Syringe, LineChart as ChartIcon, LayoutDashboard, Save, LogIn, LogOut, FolderOpen
+  TrendingUp, AlertTriangle, Activity, Target, Database, Wheat, Globe, MapPin, Calendar, Layers
 } from 'lucide-react';
-
-import { useSession, signIn, signOut } from "next-auth/react";
-import { saveSimulation, getSimulations, createFlock, getFlocks, logFlockDaily, getFlockLogs } from "../actions";
-import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PriceData {
   date: string;
   price: number;
+  region: string;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-
-const VACCINE_SCHEDULE = [
-  { day: 1, action: 'Vitamins & Electrolytes (Water)' },
-  { day: 7, action: 'Newcastle Disease (ND) + IB (Eye Drop/Water)' },
-  { day: 14, action: 'Gumboro Disease (IBD) (Drinking Water)' },
-  { day: 21, action: 'Newcastle Disease Booster (Drinking Water)' },
-  { day: 24, action: 'Gumboro Booster (If high risk) (Drinking Water)' },
-  { day: 35, action: 'Withdrawal of all medications/antibiotics' }
-];
-
 const App = () => {
-  const router = useRouter();
   const { data: session, status } = useSession();
-  const [savedSimulations, setSavedSimulations] = useState<any[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Custom Auth State
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authError, setAuthError] = useState('');
-
-  const handleLogin = async () => {
-    setAuthError('');
-    if (!authEmail || !authPassword) {
-      setAuthError("Enter email and password!");
-      return;
-    }
-    const res = await signIn('credentials', { 
-      email: authEmail, 
-      password: authPassword,
-      redirect: false
-    });
-    
-    if (res?.error) {
-      setAuthError("Invalid email or password");
-    }
-  };
-
-  const [showSettings, setShowSettings] = useState(false);
-
-  const handleInviteUser = async () => {
-    const email = prompt("Enter the email of the user to invite:");
-    if (!email) return;
-    const res = await fetch('/api/users/invite', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (res.ok) alert(data.message);
-    else alert(data.error);
-  };
-
-  const handleChangePassword = async () => {
-    const newPassword = prompt("Enter your new password (min 6 characters):");
-    if (!newPassword) return;
-    const res = await fetch('/api/users/change-password', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ newPassword })
-    });
-    if (res.ok) alert("Password changed successfully!");
-    else alert("Failed to change password.");
-  };
-
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'market' | 'logger'>('dashboard');
-
-  // Flock Logger State
-  const [flocks, setFlocks] = useState<any[]>([]);
-  const [activeFlockId, setActiveFlockId] = useState<number | null>(null);
-  const [flockLogs, setFlockLogs] = useState<any[]>([]);
-
-  const [newFlockName, setNewFlockName] = useState('');
-  const [newFlockChicks, setNewFlockChicks] = useState(1000);
-  const [newFlockDate, setNewFlockDate] = useState(new Date().toISOString().split('T')[0]);
-
-  const [logDay, setLogDay] = useState(1);
-  const [logMortality, setLogMortality] = useState(0);
-  const [logFeed, setLogFeed] = useState('0');
-  const [logNotes, setLogNotes] = useState('');
-
-  useEffect(() => {
-    if (session && activeTab === 'logger') {
-      getFlocks().then(setFlocks);
-    }
-  }, [session, activeTab]);
-
-  useEffect(() => {
-    if (activeFlockId) {
-      getFlockLogs(activeFlockId).then(setFlockLogs);
-    }
-  }, [activeFlockId]);
-
-  const handleCreateFlock = async () => {
-    if (!newFlockName) return alert("Flock name required");
-    await createFlock(newFlockName, newFlockChicks, newFlockDate);
-    const updated = await getFlocks();
-    setFlocks(updated);
-    setNewFlockName('');
-  };
-
-  const handleLogDaily = async () => {
-    if (!activeFlockId) return alert("Select a flock first");
-    await logFlockDaily(activeFlockId, logDay, logMortality, logFeed, logNotes);
-    const updatedLogs = await getFlockLogs(activeFlockId);
-    setFlockLogs(updatedLogs);
-    setLogDay(logDay + 1);
-    setLogMortality(0);
-    setLogFeed('0');
-    setLogNotes('');
-  };
-
-  // Inputs: Basic
-  const [chicksBought, setChicksBought] = useState(1000);
-  const [mortalityRate, setMortalityRate] = useState(5); // %
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [daysToSell, setDaysToSell] = useState(45);
-  const [avgWeight, setAvgWeight] = useState(2.5); // kg
-
-  // Inputs: Costs
-  const [chickCost, setChickCost] = useState(150); // DZD
-  const [feedConsumedPerChick, setFeedConsumedPerChick] = useState(3.8); // kg
-  const [feedPricePerKg, setFeedPricePerKg] = useState(80); // DZD
-  const [medicationCost, setMedicationCost] = useState(15); // DZD per chick
-  const [energyCost, setEnergyCost] = useState(20); // Heating/Electricity DZD per chick
-  const [laborCostCycle, setLaborCostCycle] = useState(30000); // Total labor cost for the cycle DZD
-  
-  // Historical Data State
-  const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
+  const [rawPriceData, setRawPriceData] = useState<PriceData[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-
-  // Load Saved Simulations
-  useEffect(() => {
-    if (session) {
-      getSimulations().then(setSavedSimulations).catch(console.error);
-    }
-  }, [session]);
-
-  const handleSaveScenario = async () => {
-    if (!session) return;
-    const simName = prompt("Enter a name for this scenario (e.g. Summer Batch 2026):");
-    if (!simName) return;
-
-    setIsSaving(true);
-    const data = {
-      chicksBought, mortalityRate, startDate, daysToSell, avgWeight,
-      chickCost, feedConsumedPerChick, feedPricePerKg, medicationCost, energyCost, laborCostCycle
-    };
-
-    try {
-      await saveSimulation(simName, data);
-      const updated = await getSimulations();
-      setSavedSimulations(updated);
-      alert("Scenario saved successfully!");
-    } catch (err) {
-      alert("Failed to save scenario.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleLoadScenario = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!e.target.value) return;
-    const simData = JSON.parse(e.target.value);
-    
-    setChicksBought(simData.chicksBought ?? 1000);
-    setMortalityRate(simData.mortalityRate ?? 5);
-    setStartDate(simData.startDate ?? new Date().toISOString().split('T')[0]);
-    setDaysToSell(simData.daysToSell ?? 45);
-    setAvgWeight(simData.avgWeight ?? 2.5);
-    setChickCost(simData.chickCost ?? 150);
-    setFeedConsumedPerChick(simData.feedConsumedPerChick ?? 3.8);
-    setFeedPricePerKg(simData.feedPricePerKg ?? 80);
-    setMedicationCost(simData.medicationCost ?? 15);
-    setEnergyCost(simData.energyCost ?? 20);
-    setLaborCostCycle(simData.laborCostCycle ?? 30000);
-  };
-
-  // Dates calculation
-  const sellDateObj = useMemo(() => {
-    const d = new Date(startDate);
-    d.setDate(d.getDate() + daysToSell);
-    return d;
-  }, [startDate, daysToSell]);
   
-  const sellDateStr = useMemo(() => sellDateObj.toISOString().split('T')[0], [sellDateObj]);
-  const endDateDisplay = useMemo(() => sellDateObj.toLocaleDateString('en-GB'), [sellDateObj]);
+  // Active filters
+  const [selectedRegion, setSelectedRegion] = useState<string>('All');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('6m'); // '1m', '3m', '6m', '1y', 'all'
+  const [smaPeriod, setSmaPeriod] = useState<number>(7); // 0 (None), 7, 30
+  
+  // Macroeconomic variables
+  const [macroMarketData, setMacroMarketData] = useState<any[]>([]);
+  const [marketRange, setMarketRange] = useState(6);
+  const [loadingMacro, setLoadingMacro] = useState(true);
 
-  // Load CSV Data
+  // Load local chicken prices CSV
   useEffect(() => {
     fetch('/prices.csv')
       .then(res => res.text())
       .then(csv => {
         const lines = csv.split('\n').slice(1);
-        const dataMap: Record<string, number[]> = {};
+        const parsedList: PriceData[] = [];
         
         lines.forEach(line => {
           if (!line.trim()) return;
           const cols = line.split(',');
           if (cols.length >= 4) {
             const date = cols[0];
+            const region = cols[2]?.trim() || 'Unknown';
             const priceRaw = parseInt(cols[3], 10);
             if (!isNaN(priceRaw)) {
+              // Convert e.g. 23000 to 230
               const price = priceRaw > 1000 ? priceRaw / 100 : priceRaw;
-              if (!dataMap[date]) dataMap[date] = [];
-              dataMap[date].push(price);
+              parsedList.push({ date, region, price });
             }
           }
         });
 
-        const sortedData: PriceData[] = Object.keys(dataMap).sort().map(date => {
-          const avgPrice = dataMap[date].reduce((a, b) => a + b, 0) / dataMap[date].length;
-          return { date, price: Math.round(avgPrice) };
-        });
-
-        setHistoricalData(sortedData);
+        // Sort chronologically
+        parsedList.sort((a, b) => a.date.localeCompare(b.date));
+        setRawPriceData(parsedList);
         setLoadingData(false);
       })
       .catch(err => {
         console.error("Error loading CSV:", err);
+        toast.error("Failed to load historical price database");
         setLoadingData(false);
       });
   }, []);
 
-  // Pricing
-  const [manualSellingPrice, setManualSellingPrice] = useState<number | null>(null);
-  
-  const autoSellingPrice = useMemo(() => {
-    if (historicalData.length === 0) return 250;
-    const exactMatch = historicalData.find(d => d.date === sellDateStr);
-    if (exactMatch) return exactMatch.price;
-    const pastDates = historicalData.filter(d => d.date <= sellDateStr);
-    if (pastDates.length > 0) return pastDates[pastDates.length - 1].price;
-    return historicalData[historicalData.length - 1].price;
-  }, [historicalData, sellDateStr]);
-
-  const sellingPrice = manualSellingPrice !== null ? manualSellingPrice : autoSellingPrice;
-  const isAutoPrice = manualSellingPrice === null;
-
-  // Advanced Calculations
-  const survivedChicks = useMemo(() => Math.floor(chicksBought * (1 - mortalityRate / 100)), [chicksBought, mortalityRate]);
-  const totalMeatKg = useMemo(() => survivedChicks * avgWeight, [survivedChicks, avgWeight]);
-  
-  // Cost breakdown
-  const totalChickCost = chicksBought * chickCost;
-  const feedCostTotal = (survivedChicks * feedConsumedPerChick * feedPricePerKg) + 
-                        ((chicksBought - survivedChicks) * (feedConsumedPerChick / 2) * feedPricePerKg);
-  const totalMedsCost = chicksBought * medicationCost;
-  const totalEnergyCost = chicksBought * energyCost;
-  
-  const totalCost = totalChickCost + feedCostTotal + totalMedsCost + totalEnergyCost + laborCostCycle;
-  
-  const totalRevenue = totalMeatKg * sellingPrice;
-  const profit = totalRevenue - totalCost;
-  
-  // KPIs
-  const roi = ((profit / totalCost) * 100).toFixed(1);
-  const profitMargin = ((profit / totalRevenue) * 100).toFixed(1);
-  const breakEvenPrice = totalCost / totalMeatKg;
-  const fcr = feedConsumedPerChick / avgWeight;
-
-  // Chart Data
-  const costBreakdownData = [
-    { name: 'Chicks', value: totalChickCost },
-    { name: 'Feed', value: feedCostTotal },
-    { name: 'Meds & Vaccines', value: totalMedsCost },
-    { name: 'Energy', value: totalEnergyCost },
-    { name: 'Labor', value: laborCostCycle },
-  ];
-
-  const sensitivityData = useMemo(() => {
-    const data = [];
-    const minPrice = Math.max(50, sellingPrice - 80);
-    const maxPrice = sellingPrice + 80;
-    for (let p = minPrice; p <= maxPrice; p += 10) {
-      const pRevenue = totalMeatKg * p;
-      data.push({ price: p, profit: pRevenue - totalCost });
-    }
-    return data;
-  }, [sellingPrice, totalMeatKg, totalCost]);
-
-  const resourceData = useMemo(() => {
-    const data = [];
-    for (let day = 1; day <= daysToSell; day++) {
-      const growthFactor = Math.pow(day / daysToSell, 2);
-      const dailyFeed = (feedConsumedPerChick / daysToSell) * 0.5 + (growthFactor * 0.1); 
-      const alive = chicksBought - ((chicksBought - survivedChicks) * (day / daysToSell));
-      const k = 0.15;
-      const midpoint = daysToSell * 0.55; 
-      const expectedWeight = (avgWeight * 1.05) / (1 + Math.exp(-k * (day - midpoint)));
-
-      data.push({
-        day: `Day ${day}`,
-        feedKg: Math.round(dailyFeed * alive),
-        waterLiters: Math.round((dailyFeed * 2) * alive),
-        weightGrams: Math.round(expectedWeight * 1000)
-      });
-    }
-    return data;
-  }, [daysToSell, feedConsumedPerChick, chicksBought, survivedChicks, avgWeight]);
-
-  const [macroMarketData, setMacroMarketData] = useState<any[]>([]);
-  const [marketRange, setMarketRange] = useState(6);
-
+  // Fetch macroeconomic data
   useEffect(() => {
-    if (activeTab === 'market') {
-      setLoadingData(true);
+    if (session) {
+      setLoadingMacro(true);
       fetch(`/api/market?months=${marketRange}`)
         .then(res => res.json())
         .then(data => {
           if (!data.error) setMacroMarketData(data);
-          setLoadingData(false);
+          setLoadingMacro(false);
         })
-        .catch(() => setLoadingData(false));
+        .catch(() => setLoadingMacro(false));
     }
-  }, [activeTab, marketRange]);
-  const formatDZD = (num: number) => {
-    return new Intl.NumberFormat('fr-DZ', { style: 'currency', currency: 'DZD', maximumFractionDigits: 0 }).format(num);
-  };
+  }, [session, marketRange]);
 
-  if (status === "loading") {
-    return null;
-  }
+  // Unique regions
+  const regions = useMemo(() => {
+    const unique = new Set(rawPriceData.map(d => d.region));
+    unique.delete('Unknown');
+    unique.delete('');
+    return ['All', ...Array.from(unique)];
+  }, [rawPriceData]);
+
+  // Filtered & grouped local price data
+  const processedData = useMemo(() => {
+    if (rawPriceData.length === 0) return [];
+    
+    let filtered = rawPriceData;
+    
+    // 1. Filter by Region
+    if (selectedRegion !== 'All') {
+      filtered = rawPriceData.filter(d => d.region === selectedRegion);
+    }
+    
+    // 2. Filter by Timeframe
+    if (selectedTimeframe !== 'all') {
+      const cutoffDate = new Date();
+      if (selectedTimeframe === '1m') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+      else if (selectedTimeframe === '3m') cutoffDate.setMonth(cutoffDate.getMonth() - 3);
+      else if (selectedTimeframe === '6m') cutoffDate.setMonth(cutoffDate.getMonth() - 6);
+      else if (selectedTimeframe === '1y') cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
+      
+      const cutoffStr = cutoffDate.toISOString().split('T')[0];
+      filtered = filtered.filter(d => d.date >= cutoffStr);
+    }
+    
+    // 3. Group by Date (average price if multiple postings exist)
+    const dateGroups: Record<string, number[]> = {};
+    filtered.forEach(item => {
+      if (!dateGroups[item.date]) dateGroups[item.date] = [];
+      dateGroups[item.date].push(item.price);
+    });
+    
+    const sortedDates = Object.keys(dateGroups).sort();
+    const result = sortedDates.map(date => {
+      const prices = dateGroups[date];
+      const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+      return {
+        date,
+        price: Math.round(avgPrice),
+      };
+    });
+
+    // 4. Calculate SMAs
+    return result.map((item, index, arr) => {
+      const start7 = Math.max(0, index - 6);
+      const slice7 = arr.slice(start7, index + 1);
+      const sma7Value = slice7.reduce((sum, d) => sum + d.price, 0) / slice7.length;
+
+      const start30 = Math.max(0, index - 29);
+      const slice30 = arr.slice(start30, index + 1);
+      const sma30Value = slice30.reduce((sum, d) => sum + d.price, 0) / slice30.length;
+
+      return {
+        ...item,
+        sma7: Math.round(sma7Value),
+        sma30: Math.round(sma30Value)
+      };
+    });
+  }, [rawPriceData, selectedRegion, selectedTimeframe]);
+
+  // Analytics metrics
+  const analytics = useMemo(() => {
+    if (processedData.length === 0) {
+      return { avg: 0, min: 0, max: 0, volatility: 0, current: 0, changePercent: 0 };
+    }
+    
+    const prices = processedData.map(d => d.price);
+    const sum = prices.reduce((a, b) => a + b, 0);
+    const avg = sum / prices.length;
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    
+    // Volatility (Standard Deviation)
+    const variance = prices.reduce((acc, p) => acc + Math.pow(p - avg, 2), 0) / prices.length;
+    const stdDev = Math.sqrt(variance);
+    
+    const current = prices[prices.length - 1];
+    const initialPrice = prices[0];
+    const changePercent = initialPrice > 0 ? ((current - initialPrice) / initialPrice) * 100 : 0;
+    
+    return {
+      avg: Math.round(avg),
+      min,
+      max,
+      volatility: parseFloat(stdDev.toFixed(1)),
+      current,
+      changePercent: parseFloat(changePercent.toFixed(1))
+    };
+  }, [processedData]);
+
+  // Seasonality by Day of Week
+  const weeklySeasonality = useMemo(() => {
+    if (processedData.length === 0) return [];
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const groups: Record<number, number[]> = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[]};
+    
+    processedData.forEach(d => {
+      const dayNum = new Date(d.date).getDay();
+      groups[dayNum].push(d.price);
+    });
+    
+    return [1, 2, 3, 4, 5, 6, 0].map(dayNum => {
+      const prices = groups[dayNum];
+      const avg = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+      return {
+        day: days[dayNum],
+        price: Math.round(avg)
+      };
+    });
+  }, [processedData]);
+
+  // Regional stats compare table
+  const regionalCompare = useMemo(() => {
+    if (rawPriceData.length === 0) return [];
+    
+    const groups: Record<string, number[]> = {};
+    rawPriceData.forEach(d => {
+      const reg = d.region;
+      if (reg === 'Unknown' || !reg) return;
+      if (!groups[reg]) groups[reg] = [];
+      groups[reg].push(d.price);
+    });
+    
+    return Object.keys(groups).map(reg => {
+      const prices = groups[reg];
+      const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+      return {
+        region: reg,
+        avg: Math.round(avg),
+        min: Math.min(...prices),
+        max: Math.max(...prices),
+        records: prices.length
+      };
+    }).sort((a, b) => b.avg - a.avg);
+  }, [rawPriceData]);
+
+  if (status === "loading") return null;
 
   return (
-        /* MARKET ANALYSIS TAB */
-        <div className="market-analysis" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          <div className="card" style={{ padding: '2rem', textAlign: 'center', background: 'linear-gradient(145deg, var(--bg-card) 0%, rgba(59,130,246,0.05) 100%)' }}>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Macroeconomic Market Analysis</h2>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '800px', margin: '0 auto', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              Chicken prices do not exist in a vacuum. They are heavily influenced by the cost of global commodities (Corn/Soy), the price of substitute meats (Beef), and the supply of day-old chicks. This dashboard correlates historical chicken prices against these macroeconomic trends.
-            </p>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-lighter)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Timeframe:</span>
-              <select 
-                className="form-input" 
-                value={marketRange} 
-                onChange={(e) => setMarketRange(Number(e.target.value))}
-                style={{ width: 'auto', padding: '0.4rem 2rem 0.4rem 1rem', fontSize: '0.9rem' }}
-              >
-                <option value={6}>Past 6 Months</option>
-                <option value={12}>Past 1 Year</option>
-                <option value={24}>Past 2 Years</option>
-                <option value={60}>Past 5 Years</option>
-              </select>
-            </div>
+    <div className="market-analysis flex flex-col gap-6" style={{ marginTop: '1rem' }}>
+      
+      {/* Overview Intro Box */}
+      <div className="card p-6 rounded-xl border bg-card text-card-foreground shadow-xs flex flex-col md:flex-row gap-6 items-center justify-between" style={{ background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(59,130,246,0.05) 100%)' }}>
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold flex items-center gap-2 mb-2 text-foreground"><Database className="text-primary" size={24} /> Market Intelligence Dashboard</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">
+            Correlate local market sales data with macroeconomic indicators. Filter by Algerian provinces, analyze weekly seasonality, track moving averages, and predict feed cost impact to optimize your flock sell time.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Region Select */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Province / Market</span>
+            <Select value={selectedRegion} onValueChange={(val) => setSelectedRegion(val || 'All')}>
+              <SelectTrigger className="w-[160px] h-9 bg-input/40 border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {regions.map(r => (
+                  <SelectItem key={r} value={r}>{r === 'All' ? '🇩🇿 All Regions' : r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          <div className="charts-grid">
-            
-            {/* Combo Chart 1: Chicken vs Feed (Corn) */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '450px' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Market Correlation: Chicken Price vs Corn (Feed) Prices</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>As feed costs rise, chicken prices usually follow shortly after.</span>
-              </div>
-              <div className="chart-body">
-                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis yAxisId="left" stroke="#8b5cf6" label={{ value: 'Chicken (DZD/kg)', angle: -90, position: 'insideLeft', fill: '#8b5cf6' }} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" label={{ value: 'Corn (DZD/Quintal)', angle: 90, position: 'insideRight', fill: '#f59e0b' }} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                      <Line yAxisId="right" type="monotone" dataKey="cornPrice" name="Corn Trend (DZD/Quintal)" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+          {/* Timeframe selector */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Timeframe</span>
+            <div className="flex bg-muted p-0.5 rounded-lg border border-border h-9">
+              {['1m', '3m', '6m', '1y', 'all'].map(t => (
+                <button 
+                  key={t}
+                  onClick={() => setSelectedTimeframe(t)}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold uppercase transition-all cursor-pointer ${selectedTimeframe === t ? 'bg-card text-card-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {t}
+                </button>
+              ))}
             </div>
-
-            {/* Combo Chart 2: Chicken vs Beef (Substitutes) */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '450px' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Market Correlation: Chicken Price vs Beef Prices</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>When beef gets too expensive, demand for chicken surges, driving prices up.</span>
-              </div>
-              <div className="chart-body">
-                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis yAxisId="left" stroke="#8b5cf6" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#ef4444" domain={['auto', 'auto']} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                      <Line yAxisId="right" type="monotone" dataKey="beefPrice" name="Beef Trend (DZD/kg)" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* Combo Chart 3: Chicken vs Day-Old Chick Prices */}
-            <div className="chart-container" style={{ gridColumn: '1 / -1', height: '400px' }}>
-              <div className="chart-header">
-                <h3 className="chart-title">Supply Squeeze: Chicken Price vs Day-Old Chick (DOC) Price</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>High DOC prices indicate a chick shortage, predicting lower meat supply 45 days later.</span>
-              </div>
-              <div className="chart-body">
-                {loadingData ? <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading...</div> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={macroMarketData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} />
-                      <YAxis yAxisId="left" stroke="#8b5cf6" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.2)" strokeWidth={2} />
-                      <Bar yAxisId="right" dataKey="docPrice" name="Day-Old Chick Price (DZD/chick)" fill="#10b981" opacity={0.7} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
           </div>
         </div>
+      </div>
+
+      {/* Local Price KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="kpi-card" style={{ '--accent-gradient': 'linear-gradient(135deg, #a855f7, #6366f1)' } as any}>
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><MapPin size={13} /> Current Price</div>
+          <div className="kpi-value mt-2" style={{ color: '#a855f7' }}>{analytics.current} DZD</div>
+          <div className="text-xs mt-1">
+            <span className={analytics.changePercent >= 0 ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-semibold'}>
+              {analytics.changePercent >= 0 ? '▲' : '▼'} {Math.abs(analytics.changePercent)}%
+            </span>
+            <span className="text-muted-foreground"> vs start</span>
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Activity size={13} /> Average Price</div>
+          <div className="kpi-value mt-2">{analytics.avg} DZD</div>
+          <div className="text-xs text-muted-foreground mt-1">Median flock value</div>
+        </div>
+        <div className="kpi-card success">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><TrendingUp size={13} /> Peak Price</div>
+          <div className="kpi-value success mt-2">{analytics.max} DZD</div>
+          <div className="text-xs text-muted-foreground mt-1">Historical cycle maximum</div>
+        </div>
+        <div className="kpi-card danger">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Target size={13} /> Floor Price</div>
+          <div className="kpi-value danger mt-2">{analytics.min} DZD</div>
+          <div className="text-xs text-muted-foreground mt-1">Historical cycle floor</div>
+        </div>
+        <div className="kpi-card warning">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><AlertTriangle size={13} /> Volatility</div>
+          <div className="kpi-value warning mt-2">± {analytics.volatility} DZD</div>
+          <div className="text-xs text-muted-foreground mt-1">Std dev (price swings)</div>
+        </div>
+      </div>
+
+      {/* Main Chicken Price Area Chart */}
+      <Card className="border-border">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
+          <div>
+            <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+              <TrendingUp className="text-primary" size={18} /> Chicken Price Trend & Indicators
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Daily market averages with selectable moving average crossovers
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><Layers size={14} /> Overlay:</span>
+            <div className="flex bg-muted p-0.5 rounded-lg border border-border h-8">
+              {[[0, 'None'], [7, '7d SMA'], [30, '30d SMA']].map(([val, label]) => (
+                <button 
+                  key={val}
+                  onClick={() => setSmaPeriod(Number(val))}
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${smaPeriod === val ? 'bg-card text-card-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="h-[360px] pt-4">
+          {loadingData ? (
+            <div className="h-full flex items-center justify-center text-muted-foreground">Loading chart data...</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={processedData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                <defs>
+                  <linearGradient id="chickenGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} minTickGap={30} />
+                <YAxis stroke="#94a3b8" fontSize={11} domain={['dataMin - 10', 'dataMax + 10']} />
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  formatter={(val: any, name: any) => [
+                    `${val} DZD/kg`, 
+                    name === 'price' ? 'Chicken Price' : name === 'sma7' ? '7-Day SMA' : '30-Day SMA'
+                  ]}
+                />
+                <Area type="monotone" dataKey="price" stroke="#a855f7" strokeWidth={2.5} fillOpacity={1} fill="url(#chickenGrad)" />
+                {smaPeriod === 7 && <Line type="monotone" dataKey="sma7" stroke="#10b981" strokeWidth={1.5} dot={false} />}
+                {smaPeriod === 30 && <Line type="monotone" dataKey="sma30" stroke="#f59e0b" strokeWidth={1.5} dot={false} />}
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Weekly patterns & Regional breakdowns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Weekly seasonality bar chart */}
+        <Card className="flex flex-col h-[350px] border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+              <Calendar className="text-amber-500" size={16} /> Weekly Seasonality Profile
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Average price per day of week (identifies best selling days)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 min-h-0 pt-2">
+            {loadingData ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground">Loading seasonality...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklySeasonality} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} />
+                  <YAxis stroke="#94a3b8" fontSize={10} domain={['dataMin - 10', 'dataMax + 5']} />
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    formatter={(val: number) => [`${val} DZD/kg`, "Avg Price"]}
+                  />
+                  <Bar dataKey="price" fill="#f59e0b" radius={[4, 4, 0, 0]} opacity={0.8} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Regional performance comparison table */}
+        <Card className="flex flex-col h-[350px] overflow-hidden border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+              <MapPin className="text-emerald-500" size={16} /> Regional Performance Matrix
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Compare average, peak, and floor prices across regional markets
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-y-auto">
+            <div className="border border-border rounded-lg overflow-hidden">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted text-muted-foreground text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="p-3">Region</th>
+                    <th className="p-3 text-right">Avg Price</th>
+                    <th className="p-3 text-right">Max</th>
+                    <th className="p-3 text-right">Min</th>
+                    <th className="p-3 text-right">Records</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {regionalCompare.map((item, index) => (
+                    <tr key={index} className="hover:bg-accent/40 transition-colors">
+                      <td className="p-3 font-medium text-foreground">{item.region}</td>
+                      <td className="p-3 text-right font-semibold text-emerald-500">{item.avg} DZD</td>
+                      <td className="p-3 text-right text-muted-foreground">{item.max} DZD</td>
+                      <td className="p-3 text-right text-muted-foreground">{item.min} DZD</td>
+                      <td className="p-3 text-right text-xs text-muted-foreground">{item.records}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Global Macroeconomic correlation header */}
+      <div className="border-t border-border pt-6 mt-2">
+        <h3 className="text-xl font-bold flex items-center gap-2 mb-2 text-foreground"><Globe className="text-primary" size={20} /> Macroeconomic Market Correlations</h3>
+        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          Prices of substitutions and global commodity futures directly impact Algerian poultry demand. View correlations below.
+        </p>
+      </div>
+
+      {/* Macro correlation graphs (combining existing graphs) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Combo Chart 1: Chicken vs Feed (Corn) */}
+        <Card className="flex flex-col h-[380px] border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+              <Wheat className="text-amber-500" size={16} /> Chicken Price vs Corn (Feed) Prices
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Correlating price shifts with global corn futures index
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 min-h-0 pt-2">
+            {loadingMacro ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground">Loading macro correlation...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={macroMarketData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} minTickGap={30} />
+                  <YAxis yAxisId="left" stroke="#a855f7" fontSize={9} label={{ value: 'Chicken (DZD/kg)', angle: -90, position: 'insideLeft', fill: '#a855f7', fontSize: 9 }} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" fontSize={9} label={{ value: 'Corn (DZD/Quintal)', angle: 90, position: 'insideRight', fill: '#f59e0b', fontSize: 9 }} />
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                  <Legend fontSize={10} />
+                  <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#a855f7" fill="rgba(168, 85, 247, 0.1)" strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="cornPrice" name="Corn Trend (DZD/Quintal)" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Combo Chart 2: Chicken vs Beef (Substitutes) */}
+        <Card className="flex flex-col h-[380px] border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+              <Activity className="text-rose-500" size={16} /> Chicken Price vs Beef Prices
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Substitute meat cost comparison relative to consumer switching
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 min-h-0 pt-2">
+            {loadingMacro ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground">Loading macro correlation...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={macroMarketData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} minTickGap={30} />
+                  <YAxis yAxisId="left" stroke="#a855f7" fontSize={9} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#ef4444" fontSize={9} domain={['auto', 'auto']} />
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                  <Legend fontSize={10} />
+                  <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#a855f7" fill="rgba(168, 85, 247, 0.1)" strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="beefPrice" name="Beef Trend (DZD/kg)" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+      </div>
+    </div>
   );
 };
 
