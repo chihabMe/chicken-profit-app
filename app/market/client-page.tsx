@@ -227,10 +227,10 @@ const App = () => {
   if (status === "loading") return null;
 
   return (
-    <div className="market-analysis flex flex-col gap-6" style={{ marginTop: '1rem' }}>
-      
+    <div className="flex flex-col gap-6 mt-4">
+
       {/* Overview Intro Box */}
-      <div className="card p-6 rounded-xl border bg-card text-card-foreground shadow-xs flex flex-col md:flex-row gap-6 items-center justify-between" style={{ background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(59,130,246,0.05) 100%)' }}>
+      <div className="p-6 rounded-xl border border-border bg-gradient-to-br from-card to-primary/5 text-card-foreground shadow-xs flex flex-col md:flex-row gap-6 items-center justify-between">
         <div className="flex-1">
           <h2 className="text-2xl font-bold flex items-center gap-2 mb-2 text-foreground"><Database className="text-primary" size={24} /> Market Intelligence Dashboard</h2>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">
@@ -272,36 +272,99 @@ const App = () => {
 
       {/* Local Price KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="kpi-card" style={{ '--accent-gradient': 'linear-gradient(135deg, #a855f7, #6366f1)' } as any}>
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><MapPin size={13} /> Current Price</div>
-          <div className="kpi-value mt-2" style={{ color: '#a855f7' }}>{analytics.current} DZD</div>
-          <div className="text-xs mt-1">
-            <span className={analytics.changePercent >= 0 ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-semibold'}>
-              {analytics.changePercent >= 0 ? '▲' : '▼'} {Math.abs(analytics.changePercent)}%
-            </span>
-            <span className="text-muted-foreground"> vs start</span>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Activity size={13} /> Average Price</div>
-          <div className="kpi-value mt-2">{analytics.avg} DZD</div>
-          <div className="text-xs text-muted-foreground mt-1">Median flock value</div>
-        </div>
-        <div className="kpi-card success">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><TrendingUp size={13} /> Peak Price</div>
-          <div className="kpi-value success mt-2">{analytics.max} DZD</div>
-          <div className="text-xs text-muted-foreground mt-1">Historical cycle maximum</div>
-        </div>
-        <div className="kpi-card danger">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Target size={13} /> Floor Price</div>
-          <div className="kpi-value danger mt-2">{analytics.min} DZD</div>
-          <div className="text-xs text-muted-foreground mt-1">Historical cycle floor</div>
-        </div>
-        <div className="kpi-card warning">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><AlertTriangle size={13} /> Volatility</div>
-          <div className="kpi-value warning mt-2">± {analytics.volatility} DZD</div>
-          <div className="text-xs text-muted-foreground mt-1">Std dev (price swings)</div>
-        </div>
+        
+        {/* Card 1: Current Price */}
+        <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-purple-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin size={13} className="text-purple-500" /> Current Price
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-extrabold tracking-tight text-purple-500">
+              {analytics.current} DZD
+            </div>
+            <div className="text-xs mt-1.5 font-medium">
+              <span className={analytics.changePercent >= 0 ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-semibold'}>
+                {analytics.changePercent >= 0 ? '▲' : '▼'} {Math.abs(analytics.changePercent)}%
+              </span>
+              <span className="text-muted-foreground"> vs start</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 2: Average Price */}
+        <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-primary" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Activity size={13} className="text-primary" /> Average Price
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-extrabold tracking-tight text-foreground">
+              {analytics.avg} DZD
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Median flock value
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card 3: Peak Price */}
+        <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-emerald-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp size={13} className="text-emerald-500" /> Peak Price
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-extrabold tracking-tight text-emerald-500">
+              {analytics.max} DZD
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Historical cycle maximum
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card 4: Floor Price */}
+        <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-rose-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Target size={13} className="text-rose-500" /> Floor Price
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-extrabold tracking-tight text-rose-500">
+              {analytics.min} DZD
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Historical cycle floor
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card 5: Volatility */}
+        <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-lg rounded-2xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-amber-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <AlertTriangle size={13} className="text-amber-500" /> Volatility
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-extrabold tracking-tight text-amber-500">
+              ± {analytics.volatility} DZD
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Std dev (price swings)
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Chicken Price Area Chart */}
@@ -338,21 +401,21 @@ const App = () => {
               <AreaChart data={processedData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                 <defs>
                   <linearGradient id="chickenGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} minTickGap={30} />
                 <YAxis stroke="#94a3b8" fontSize={11} domain={['dataMin - 10', 'dataMax + 10']} />
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '8px', color: '#fff' }}
                   formatter={(val: any, name: any) => [
                     `${val} DZD/kg`, 
                     name === 'price' ? 'Chicken Price' : name === 'sma7' ? '7-Day SMA' : '30-Day SMA'
                   ]}
                 />
-                <Area type="monotone" dataKey="price" stroke="#a855f7" strokeWidth={2.5} fillOpacity={1} fill="url(#chickenGrad)" />
+                <Area type="monotone" dataKey="price" stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#chickenGrad)" />
                 {smaPeriod === 7 && <Line type="monotone" dataKey="sma7" stroke="#10b981" strokeWidth={1.5} dot={false} />}
                 {smaPeriod === 30 && <Line type="monotone" dataKey="sma30" stroke="#f59e0b" strokeWidth={1.5} dot={false} />}
               </AreaChart>
@@ -384,7 +447,7 @@ const App = () => {
                   <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} />
                   <YAxis stroke="#94a3b8" fontSize={10} domain={['dataMin - 10', 'dataMax + 5']} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '8px', color: '#fff' }}
                     formatter={(val: number) => [`${val} DZD/kg`, "Avg Price"]}
                   />
                   <Bar dataKey="price" fill="#f59e0b" radius={[4, 4, 0, 0]} opacity={0.8} />
@@ -462,11 +525,11 @@ const App = () => {
                 <ComposedChart data={macroMarketData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} minTickGap={30} />
-                  <YAxis yAxisId="left" stroke="#a855f7" fontSize={9} label={{ value: 'Chicken (DZD/kg)', angle: -90, position: 'insideLeft', fill: '#a855f7', fontSize: 9 }} />
+                  <YAxis yAxisId="left" stroke="#4f46e5" fontSize={9} label={{ value: 'Chicken (DZD/kg)', angle: -90, position: 'insideLeft', fill: '#4f46e5', fontSize: 9 }} />
                   <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" fontSize={9} label={{ value: 'Corn (DZD/Quintal)', angle: 90, position: 'insideRight', fill: '#f59e0b', fontSize: 9 }} />
-                  <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '8px', color: '#fff' }} />
                   <Legend fontSize={10} />
-                  <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#a855f7" fill="rgba(168, 85, 247, 0.1)" strokeWidth={2} />
+                  <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#4f46e5" fill="rgba(79, 70, 229, 0.1)" strokeWidth={2} />
                   <Line yAxisId="right" type="monotone" dataKey="cornPrice" name="Corn Trend (DZD/Quintal)" stroke="#f59e0b" strokeWidth={2} dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
@@ -492,11 +555,11 @@ const App = () => {
                 <ComposedChart data={macroMarketData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} minTickGap={30} />
-                  <YAxis yAxisId="left" stroke="#a855f7" fontSize={9} />
+                  <YAxis yAxisId="left" stroke="#4f46e5" fontSize={9} />
                   <YAxis yAxisId="right" orientation="right" stroke="#ef4444" fontSize={9} domain={['auto', 'auto']} />
-                  <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '8px', color: '#fff' }} />
                   <Legend fontSize={10} />
-                  <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#a855f7" fill="rgba(168, 85, 247, 0.1)" strokeWidth={2} />
+                  <Area yAxisId="left" type="monotone" dataKey="chickenPrice" name="Chicken Price (DZD/kg)" stroke="#4f46e5" fill="rgba(79, 70, 229, 0.1)" strokeWidth={2} />
                   <Line yAxisId="right" type="monotone" dataKey="beefPrice" name="Beef Trend (DZD/kg)" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                 </ComposedChart>
               </ResponsiveContainer>

@@ -1,14 +1,10 @@
 import '../src/index.css';
-import '../src/App.css';
 import { ReactNode } from 'react';
 import { Providers } from './providers';
 import { AuthGuard } from '../components/AuthGuard';
 import { Header } from '../components/Header';
 import { Toaster } from "@/components/ui/sonner";
-import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata = {
   title: 'Poultry Farm Pro',
@@ -17,20 +13,20 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: '#1e293b',
+  themeColor: '#4f46e5',
 };
 
-export default function RootLayout({ 
+export default function RootLayout({
   children
-}: { 
+}: {
   children: ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("dark font-sans", geist.variable)}>
+    <html lang="en" className={cn("font-sans")}>
       <body>
         <Providers>
           <AuthGuard>
-            <div className="app-container" style={{ padding: '2rem 1rem', maxWidth: '1400px', margin: '0 auto' }}>
+            <div className="max-w-[1400px] mx-auto px-4 py-8 flex flex-col gap-8 animate-in fade-in duration-500">
               <Header />
               {children}
             </div>

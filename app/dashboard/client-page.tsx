@@ -27,7 +27,7 @@ interface PriceData {
   price: number;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const VACCINE_SCHEDULE = [
   { day: 1, action: 'Vitamins & Electrolytes (Water)' },
@@ -429,7 +429,7 @@ const App = () => {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-4 bg-card border border-border rounded-xl shadow-xs mb-6 no-print">
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-4 bg-card border border-border rounded-xl shadow-xs mb-6 print:hidden">
         <div className="w-full sm:w-auto flex-1 max-w-md">
           <Select value={selectedScenarioId} onValueChange={handleLoadScenarioValue}>
             <SelectTrigger className="w-full bg-input/40 h-10 border-border">
@@ -491,7 +491,7 @@ const App = () => {
     
     <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6" id="printable-area">
           {/* Left Column: Inputs */}
-          <aside className="no-print lg:sticky lg:top-6" style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+          <aside className="print:hidden lg:sticky lg:top-6 max-h-[calc(100vh-100px)] overflow-y-auto">
             <Card className="border border-border/80 bg-card/60 backdrop-blur-md shadow-xl rounded-2xl">
               <CardHeader className="pb-4 border-b border-border/50">
                 <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
@@ -970,7 +970,7 @@ const App = () => {
 
       {/* Save Scenario Modal Overlay */}
       {isSaveModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200 no-print">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200 print:hidden">
           <div className="w-full max-w-md p-6 bg-card border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-xl font-bold flex items-center gap-2 mb-2 text-foreground">
               <Save className="text-primary size-5" /> Save Scenario
