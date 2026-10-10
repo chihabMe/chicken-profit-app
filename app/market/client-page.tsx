@@ -54,6 +54,18 @@ function parsePrice(raw: string | number): number {
   return val > 1000 ? val / 100 : val;
 }
 
+const VALID_REGIONS = ['شلغوم', 'العلمة', 'ميلة وماجاورها', 'البرج'] as const;
+
+function normalizeRegion(raw: string): string {
+  if (!raw) return 'Unknown';
+  const clean = raw.trim();
+  if (clean.includes('شلغوم')) return 'شلغوم';
+  if (clean.includes('العلمة')) return 'العلمة';
+  if (clean.includes('ميلة')) return 'ميلة وماجاورها';
+  if (clean.includes('البرج')) return 'البرج';
+  return 'Unknown';
+}
+
 interface TooltipPayloadItem {
   name: string;
   value: number;
@@ -151,7 +163,7 @@ const App = () => {
           const cols = line.split(',');
           if (cols.length >= 4) {
             const date = cols[0]?.trim();
-            const region = cols[2]?.trim() || 'Unknown';
+            const region = normalizeRegion(cols[2] || '');
             const price = parsePrice(cols[3]);
             if (date && price > 0) {
               parsedList.push({ date, region, price });
@@ -200,13 +212,10 @@ const App = () => {
     };
   }, [marketRange]);
 
-  // Unique regions
+  // Unique valid regions
   const regions = useMemo(() => {
-    const unique = new Set(rawPriceData.map(d => d.region));
-    unique.delete('Unknown');
-    unique.delete('');
-    return ['All', ...Array.from(unique)];
-  }, [rawPriceData]);
+    return ['All', ...VALID_REGIONS];
+  }, []);
 
   // 1. Filtered individual price records based on active region & timeframe
   const filteredRecords = useMemo(() => {
@@ -363,7 +372,7 @@ const App = () => {
     const groups: Record<string, number[]> = {};
     rawPriceData.forEach(d => {
       const reg = d.region;
-      if (reg === 'Unknown' || !reg) return;
+      if (reg === 'Unknown' || !reg || !VALID_REGIONS.includes(reg as any)) return;
       if (!groups[reg]) groups[reg] = [];
       groups[reg].push(d.price);
     });
@@ -397,7 +406,7 @@ const App = () => {
           <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Province / Market</span>
             <Select value={selectedRegion} onValueChange={(val) => setSelectedRegion(val || 'All')}>
-              <SelectTrigger className="w-[160px] h-9 bg-input/40 border-border">
+              <SelectTrigger className="w-[170px] h-9 bg-input/40 border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -421,6 +430,21 @@ const App = () => {
                 </button>
               ))}
             </div>
+          </div>
+          {/* Download CSV button */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Export Data</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadCsv}
+              disabled={loadingData || filteredRecords.length === 0}
+              className="h-9 gap-1.5 text-xs font-semibold cursor-pointer border-border hover:bg-muted bg-input/40 px-3"
+              title="Download filtered chicken price records as CSV"
+            >
+              <Download size={14} className="text-primary" />
+              Download CSV
+            </Button>
           </div>
         </div>
       </div>
@@ -558,7 +582,7 @@ const App = () => {
               title="Download filtered chicken price records as CSV"
             >
               <Download size={14} />
-              Export CSV
+              Download CSV
             </Button>
           </div>
         </CardHeader>
