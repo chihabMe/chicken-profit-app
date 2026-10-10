@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-10T13:45:13.527Z",
+  "generatedAt": "2026-10-10T16:38:41.380Z",
   "metadata": {
-    "period": "2022-W01 to 2026-W26",
+    "period": "2022-W01 to 2026-W41",
     "description": "Authentic historical multi-source weekly time-series covering feed commodities (CBOT), energy (ICE), shipping (BDRY), official currency rates (Bank of Algeria), weather reanalysis (Open-Meteo), and Islamic calendar seasonality aligned with Algerian wholesale chicken prices."
   },
   "metrics": {
@@ -1175,6 +1175,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 304.3
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 305.93
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 318.1
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 319.68
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 328.6
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 316.54
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 310.42
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 307.34
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 315.48
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 327.54
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 341.26
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 345.22
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 358.8
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 371.16
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 355.14
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 358.92
       }
     ],
     "soybeans": [
@@ -2347,6 +2422,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 1119.05
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 1120.88
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 1190.05
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 1202.2
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 1232.8
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 1189.55
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 1157.8
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 1162.4
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 1213.95
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 1246.2
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 1296.75
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 1298.5
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 1309.55
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 1321.6
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 1288.25
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 1292.15
       }
     ],
     "corn": [
@@ -3519,6 +3669,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 411.15
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 415.19
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 436.75
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 441.05
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 458.5
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 449.15
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 441.25
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 447.8
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 472.75
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 505.65
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 516.5
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 510.75
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 528
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 532.9
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 509.15
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 497.45
       }
     ],
     "wheat": [
@@ -4691,6 +4916,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 587.85
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 583.19
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 611.6
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 658.65
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 686.4
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 657.2
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 640.55
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 650.2
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 676.75
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 721.5
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 745.45
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 717.94
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 721.5
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 712.55
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 684.6
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 687.45
       }
     ],
     "brentCrude": [
@@ -5863,6 +6163,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 75.19
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 72.36
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 75.3
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 85.06
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 94.35
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 88.47
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 81.72
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 88.24
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 92.34
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 89.52
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 94.51
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 102.84
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 105.79
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 102.72
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 103.19
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 102.02
       }
     ],
     "freightBdry": [
@@ -7035,6 +7410,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 11.54
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 11.96
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 12.88
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 12.92
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 12.51
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 12.91
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 13.91
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 13.89
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 14.15
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 15.03
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 16.11
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 16.08
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 15.49
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 15.74
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 14.53
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 14.21
       }
     ],
     "usdDzd": [
@@ -8207,6 +8657,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 133.0977
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 132.8173
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 132.724
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 132.6444
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 132.7156
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 132.7326
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 132.4387
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 132.2833
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 132.1375
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 132.5212
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 132.8306
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 132.6583
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 133.182
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 133.4003
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 133.429
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 133.8838
       }
     ],
     "eurDzd": [
@@ -9379,6 +9904,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 151.747
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 151.515
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 151.7026
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 151.6736
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 151.4196
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 151.6616
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 152.745
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 152.7192
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 153.5578
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 154.6708
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 154.0307
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 154.2052
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 153.5612
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 152.5
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 151.2664
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 150.3753
       }
     ],
     "summerHeat": [
@@ -10551,6 +11151,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 35.41
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 31.33
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 38.79
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 44.23
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 41.93
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 36.23
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 37.34
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 37.89
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 38.27
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 42.09
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 36.17
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 31.99
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 28.79
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 28.56
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 30.99
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 27.63
       }
     ],
     "eidAdhaProximity": [
@@ -11723,6 +12398,81 @@
         "date": "2026-06-22",
         "isoWeek": "2026-W26",
         "value": 0.0667
+      },
+      {
+        "date": "2026-06-29",
+        "isoWeek": "2026-W27",
+        "value": 0
+      },
+      {
+        "date": "2026-07-06",
+        "isoWeek": "2026-W28",
+        "value": 0
+      },
+      {
+        "date": "2026-07-13",
+        "isoWeek": "2026-W29",
+        "value": 0
+      },
+      {
+        "date": "2026-07-20",
+        "isoWeek": "2026-W30",
+        "value": 0
+      },
+      {
+        "date": "2026-07-27",
+        "isoWeek": "2026-W31",
+        "value": 0
+      },
+      {
+        "date": "2026-08-03",
+        "isoWeek": "2026-W32",
+        "value": 0
+      },
+      {
+        "date": "2026-08-10",
+        "isoWeek": "2026-W33",
+        "value": 0
+      },
+      {
+        "date": "2026-08-17",
+        "isoWeek": "2026-W34",
+        "value": 0
+      },
+      {
+        "date": "2026-08-24",
+        "isoWeek": "2026-W35",
+        "value": 0
+      },
+      {
+        "date": "2026-08-31",
+        "isoWeek": "2026-W36",
+        "value": 0
+      },
+      {
+        "date": "2026-09-07",
+        "isoWeek": "2026-W37",
+        "value": 0
+      },
+      {
+        "date": "2026-09-14",
+        "isoWeek": "2026-W38",
+        "value": 0
+      },
+      {
+        "date": "2026-09-21",
+        "isoWeek": "2026-W39",
+        "value": 0
+      },
+      {
+        "date": "2026-09-28",
+        "isoWeek": "2026-W40",
+        "value": 0
+      },
+      {
+        "date": "2026-10-05",
+        "isoWeek": "2026-W41",
+        "value": 0
       }
     ]
   },
@@ -12786,6 +13536,66 @@
       "isoWeek": "2026-W26",
       "avgPriceDzd": 232.5,
       "sampleCount": 5
+    },
+    {
+      "isoWeek": "2026-W29",
+      "avgPriceDzd": 235,
+      "sampleCount": 6
+    },
+    {
+      "isoWeek": "2026-W30",
+      "avgPriceDzd": 287.5,
+      "sampleCount": 6
+    },
+    {
+      "isoWeek": "2026-W31",
+      "avgPriceDzd": 315,
+      "sampleCount": 9
+    },
+    {
+      "isoWeek": "2026-W32",
+      "avgPriceDzd": 355,
+      "sampleCount": 12
+    },
+    {
+      "isoWeek": "2026-W33",
+      "avgPriceDzd": 350,
+      "sampleCount": 6
+    },
+    {
+      "isoWeek": "2026-W34",
+      "avgPriceDzd": 385,
+      "sampleCount": 6
+    },
+    {
+      "isoWeek": "2026-W35",
+      "avgPriceDzd": 363.5,
+      "sampleCount": 6
+    },
+    {
+      "isoWeek": "2026-W36",
+      "avgPriceDzd": 404.83,
+      "sampleCount": 18
+    },
+    {
+      "isoWeek": "2026-W37",
+      "avgPriceDzd": 399,
+      "sampleCount": 15
+    },
+    {
+      "isoWeek": "2026-W38",
+      "avgPriceDzd": 392,
+      "sampleCount": 15
+    },
+    {
+      "isoWeek": "2026-W39",
+      "avgPriceDzd": 390,
+      "sampleCount": 3
+    },
+    {
+      "isoWeek": "2026-W41",
+      "avgPriceDzd": 316.67,
+      "sampleCount": 9
     }
   ]
 }
