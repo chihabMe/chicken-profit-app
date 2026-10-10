@@ -23,6 +23,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn("font-sans")}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                window.addEventListener('error', function(e) {
+                  if (e.message && e.message.includes('__reactContextDevtoolDebugId')) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <Providers>
           <AuthGuard>

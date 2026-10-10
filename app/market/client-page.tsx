@@ -5,11 +5,12 @@ import {
   Line, BarChart, Bar, Legend, ComposedChart
 } from 'recharts';
 import { 
-  TrendingUp, AlertTriangle, Activity, Target, Database, Wheat, Globe, MapPin, Calendar, Layers
+  TrendingUp, AlertTriangle, Activity, Target, Database, Wheat, Globe, MapPin, Calendar, Layers, Download
 } from 'lucide-react';
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PriceData {
@@ -90,18 +91,18 @@ const App = () => {
     return ['All', ...Array.from(unique)];
   }, [rawPriceData]);
 
-  // Filtered & grouped local price data
-  const processedData = useMemo(() => {
+  // 1. Filtered individual price records based on active region & timeframe
+  const filteredRecords = useMemo(() => {
     if (rawPriceData.length === 0) return [];
     
     let filtered = rawPriceData;
     
-    // 1. Filter by Region
+    // Filter by Region
     if (selectedRegion !== 'All') {
-      filtered = rawPriceData.filter(d => d.region === selectedRegion);
+      filtered = filtered.filter(d => d.region === selectedRegion);
     }
     
-    // 2. Filter by Timeframe
+    // Filter by Timeframe
     if (selectedTimeframe !== 'all') {
       const cutoffDate = new Date();
       if (selectedTimeframe === '1m') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
@@ -113,9 +114,16 @@ const App = () => {
       filtered = filtered.filter(d => d.date >= cutoffStr);
     }
     
-    // 3. Group by Date (average price if multiple postings exist)
+    return filtered;
+  }, [rawPriceData, selectedRegion, selectedTimeframe]);
+
+  // 2. Grouped local price data for the chart & SMAs
+  const processedData = useMemo(() => {
+    if (filteredRecords.length === 0) return [];
+    
+    // Group by Date (average price if multiple postings exist)
     const dateGroups: Record<string, number[]> = {};
-    filtered.forEach(item => {
+    filteredRecords.forEach(item => {
       if (!dateGroups[item.date]) dateGroups[item.date] = [];
       dateGroups[item.date].push(item.price);
     });
@@ -130,7 +138,7 @@ const App = () => {
       };
     });
 
-    // 4. Calculate SMAs
+    // Calculate SMAs
     return result.map((item, index, arr) => {
       const start7 = Math.max(0, index - 6);
       const slice7 = arr.slice(start7, index + 1);
@@ -146,7 +154,39 @@ const App = () => {
         sma30: Math.round(sma30Value)
       };
     });
-  }, [rawPriceData, selectedRegion, selectedTimeframe]);
+  }, [filteredRecords]);
+
+  // Export filtered detailed records as CSV (Option B)
+  const handleDownloadCsv = () => {
+    if (filteredRecords.length === 0) {
+      toast.error("No price records to export for the selected filters");
+      return;
+    }
+
+    const headers = ["Date", "Region", "Price (DZD/kg)"];
+    const rows = filteredRecords.map(item => [
+      item.date,
+      `"${(item.region || '').replace(/"/g, '""')}"`,
+      item.price
+    ]);
+
+    // Use UTF-8 BOM (\uFEFF) so Excel displays Arabic characters properly
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    const regionSlug = selectedRegion === 'All' ? 'all_regions' : selectedRegion.replace(/\s+/g, '_');
+    const today = new Date().toISOString().split('T')[0];
+    link.href = url;
+    link.setAttribute("download", `chicken_prices_${regionSlug}_${selectedTimeframe}_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Exported ${filteredRecords.length} records to CSV`);
+  };
 
   // Analytics metrics
   const analytics = useMemo(() => {
@@ -378,19 +418,33 @@ const App = () => {
               Daily market averages with selectable moving average crossovers
             </CardDescription>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground flex items-center gap-1"><Layers size={14} /> Overlay:</span>
-            <div className="flex bg-muted p-0.5 rounded-lg border border-border h-8">
-              {[[0, 'None'], [7, '7d SMA'], [30, '30d SMA']].map(([val, label]) => (
-                <button 
-                  key={val}
-                  onClick={() => setSmaPeriod(Number(val))}
-                  className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${smaPeriod === val ? 'bg-card text-card-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {label}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground flex items-center gap-1"><Layers size={14} /> Overlay:</span>
+              <div className="flex bg-muted p-0.5 rounded-lg border border-border h-8">
+                {[[0, 'None'], [7, '7d SMA'], [30, '30d SMA']].map(([val, label]) => (
+                  <button 
+                    key={val}
+                    onClick={() => setSmaPeriod(Number(val))}
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${smaPeriod === val ? 'bg-card text-card-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadCsv}
+              disabled={loadingData || filteredRecords.length === 0}
+              className="h-8 gap-1.5 text-xs font-semibold cursor-pointer border-border hover:bg-muted"
+              title="Download filtered chicken price records as CSV"
+            >
+              <Download size={14} />
+              Export CSV
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="h-[360px] pt-4">
