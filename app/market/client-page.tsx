@@ -2,11 +2,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
-  Line, BarChart, Bar, Legend, ComposedChart
+  Line, BarChart, Bar
 } from 'recharts';
 import { 
-  TrendingUp, AlertTriangle, Activity, Target, Database, Globe, MapPin, Calendar, Layers, Download,
-  Ship, Clock, Info, CheckCircle2, ArrowRight
+  TrendingUp, AlertTriangle, Activity, Target, Database, MapPin, Calendar, Layers, Download
 } from 'lucide-react';
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -18,23 +17,6 @@ interface PriceData {
   date: string;
   price: number;
   region: string;
-}
-
-export interface MarketApiResponse {
-  historicalCorrelation: {
-    metricName: string;
-    leadLagWeeks: number;
-    pearsonR: number;
-    rSquared: number;
-    sampleWeeks: number;
-  };
-  timeSeries: {
-    date: string;
-    isoWeek: string;
-    chickenPriceDzd: number;
-    driverPriceUsd: number;
-    driverPriceDzdEquivalent?: number;
-  }[];
 }
 
 function parsePrice(raw: string | number): number {
@@ -66,75 +48,6 @@ function normalizeRegion(raw: string): string {
   return 'Unknown';
 }
 
-interface TooltipPayloadItem {
-  name: string;
-  value: number;
-  payload: {
-    date: string;
-    isoWeek: string;
-    chickenPriceDzd: number;
-    driverPriceUsd: number;
-    driverPriceDzdEquivalent?: number;
-  };
-}
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayloadItem[];
-  label?: string;
-}
-
-const MacroChartTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    const pt = payload[0]?.payload;
-    if (!pt) return null;
-    return (
-      <div className="bg-zinc-950/95 border border-zinc-800 rounded-xl p-3.5 shadow-2xl text-xs space-y-2 backdrop-blur-md max-w-xs">
-        <div className="border-b border-zinc-800/80 pb-1.5 flex items-center justify-between gap-3">
-          <span className="font-semibold text-zinc-200">Date: {label}</span>
-          {pt.isoWeek && (
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary font-semibold">
-              {pt.isoWeek}
-            </span>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-indigo-400 font-medium flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
-              Live Chicken Price:
-            </span>
-            <span className="font-bold text-zinc-100 font-mono">
-              {pt.chickenPriceDzd} DZD/kg
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-amber-400 font-medium flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
-              Soybean Meal (16w Lag):
-            </span>
-            <span className="font-bold text-zinc-100 font-mono">
-              ${pt.driverPriceUsd} USD/short ton
-            </span>
-          </div>
-          {pt.driverPriceDzdEquivalent && (
-            <div className="flex items-center justify-between gap-4 pt-1 border-t border-zinc-800/60 text-[11px] text-zinc-400">
-              <span>DZD Equivalent (FX Aligned):</span>
-              <span className="font-mono text-zinc-300">
-                ~{Number(pt.driverPriceDzdEquivalent).toLocaleString()} DZD/ton
-              </span>
-            </div>
-          )}
-        </div>
-        <p className="text-[10px] text-zinc-500 leading-tight pt-1">
-          Transmission Delay: 16 weeks compound supply chain transmission.
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
-
 const App = () => {
   const { data: _session } = useSession();
   const [rawPriceData, setRawPriceData] = useState<PriceData[]>([]);
@@ -144,11 +57,6 @@ const App = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>('All');
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('6m'); // '1m', '3m', '6m', '1y', 'all'
   const [smaPeriod, setSmaPeriod] = useState<number>(7); // 0 (None), 7, 30
-  
-  // Macroeconomic variables
-  const [macroData, setMacroData] = useState<MarketApiResponse | null>(null);
-  const [marketRange, setMarketRange] = useState<string>('6'); // '6', '12', '24', 'all'
-  const [loadingMacro, setLoadingMacro] = useState(true);
 
   // Load local chicken prices CSV
   useEffect(() => {
@@ -182,35 +90,6 @@ const App = () => {
         setLoadingData(false);
       });
   }, []);
-
-  // Fetch macroeconomic data (unauthenticated-accessible, race-condition guarded)
-  useEffect(() => {
-    let active = true;
-    setLoadingMacro(true);
-    const query = marketRange === 'all' ? '' : `?months=${marketRange}`;
-
-    fetch(`/api/market${query}`)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: MarketApiResponse) => {
-        if (!active) return;
-        if (data && Array.isArray(data.timeSeries)) {
-          setMacroData(data);
-        }
-        setLoadingMacro(false);
-      })
-      .catch(err => {
-        if (!active) return;
-        console.error("Error loading macroeconomic intelligence:", err);
-        setLoadingMacro(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [marketRange]);
 
   // Unique valid regions
   const regions = useMemo(() => {
@@ -398,7 +277,7 @@ const App = () => {
         <div className="flex-1">
           <h2 className="text-2xl font-bold flex items-center gap-2 mb-2 text-foreground"><Database className="text-primary" size={24} /> Market Intelligence Dashboard</h2>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">
-            Correlate local market sales data with macroeconomic indicators. Filter by Algerian provinces, analyze weekly seasonality, track moving averages, and predict feed cost impact to optimize your flock sell time.
+            Real-time Algerian wholesale and farmgate live chicken price intelligence. Filter by provinces, identify optimal selling days with weekday seasonality, analyze 7-day and 30-day moving averages, and track market volatility.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -684,250 +563,6 @@ const App = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Global Macroeconomic correlation header */}
-      <div className="border-t border-border pt-6 mt-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h3 className="text-xl font-bold flex items-center gap-2 text-foreground">
-              <Globe className="text-primary" size={20} /> Macroeconomic Market Intelligence: Empirical Feed Driver
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1 leading-relaxed max-w-3xl">
-              Authentic multi-horizon econometric correlation comparing Algerian wholesale poultry prices against global feed input futures. Validated statistical findings establish CBOT Soybean Meal as the primary leading cost driver with a 16-week transmission horizon.
-            </p>
-          </div>
-
-          {/* Timeframe selector for Macro Data */}
-          <div className="flex flex-col gap-1.5 self-start md:self-auto">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Macro Time Horizon</span>
-            <div className="flex bg-muted p-0.5 rounded-lg border border-border h-9">
-              {[
-                { id: '6', label: '6M' },
-                { id: '12', label: '1Y' },
-                { id: '24', label: '2Y' },
-                { id: 'all', label: 'All (22-26)' }
-              ].map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => setMarketRange(opt.id)}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold uppercase transition-all cursor-pointer ${marketRange === opt.id ? 'bg-card text-card-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Macro correlation graphs & supply chain transmission narrative */}
-      <div className="grid grid-cols-1 gap-6">
-        
-        {/* Main Dual-Axis Correlation Chart */}
-        <Card className="flex flex-col border-border shadow-xs">
-          <CardHeader className="pb-3 border-b border-border/60">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
-                  <Activity className="text-indigo-500" size={18} />
-                  Algerian Live Chicken (DZD/kg) vs 16-Week Lagged Soybean Meal Futures (USD/short ton)
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                  Synchronized weekly time series: CBOT Soybean Meal (ZM=F) shifted forward by +16 weeks to align with domestic market delivery
-                </CardDescription>
-              </div>
-
-              {/* Statistical Empirical Badges */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <div className="px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-medium flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Pearson r: <span className="font-bold text-foreground font-mono">+{macroData?.historicalCorrelation?.pearsonR?.toFixed(4) || '0.4915'}</span>
-                </div>
-                <div className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 font-medium flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  R²: <span className="font-bold text-foreground font-mono">{macroData?.historicalCorrelation?.rSquared ? (macroData.historicalCorrelation.rSquared * 100).toFixed(1) + '%' : '24.2%'}</span>
-                </div>
-                <div className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium flex items-center gap-1.5">
-                  <Clock size={13} />
-                  Optimal Lead: <span className="font-bold text-foreground font-mono">16 Weeks</span>
-                </div>
-                <div className="px-2.5 py-1 rounded-md bg-muted text-muted-foreground border border-border font-mono text-[11px]">
-                  N = {macroData?.historicalCorrelation?.sampleWeeks || 196} wks
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="h-[420px] pt-4">
-            {loadingMacro ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground gap-2">
-                <Clock className="animate-spin text-primary" size={18} />
-                Loading synchronized market intelligence...
-              </div>
-            ) : !macroData || macroData.timeSeries.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                No market correlation data available for selected range.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={macroData.timeSeries} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                  <defs>
-                    <linearGradient id="macroChickenGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} minTickGap={35} />
-                  <YAxis 
-                    yAxisId="left" 
-                    stroke="#4f46e5" 
-                    fontSize={10} 
-                    domain={['dataMin - 15', 'dataMax + 15']}
-                    label={{ 
-                      value: 'Chicken Price (DZD/kg)', 
-                      angle: -90, 
-                      position: 'insideLeft', 
-                      fill: '#4f46e5', 
-                      fontSize: 10,
-                      offset: 12
-                    }} 
-                    tickFormatter={(v: number) => `${Math.round(v)}`}
-                  />
-                  <YAxis 
-                    yAxisId="right" 
-                    orientation="right" 
-                    stroke="#f59e0b" 
-                    fontSize={10} 
-                    domain={['dataMin - 20', 'dataMax + 20']}
-                    label={{ 
-                      value: 'Soybean Meal (16-Wk Lag, USD/short ton)', 
-                      angle: 90, 
-                      position: 'insideRight', 
-                      fill: '#f59e0b', 
-                      fontSize: 10,
-                      offset: 12
-                    }} 
-                    tickFormatter={(v: number) => `$${Math.round(v)}`}
-                  />
-                  <RechartsTooltip content={<MacroChartTooltip />} />
-                  <Legend 
-                    verticalAlign="top" 
-                    align="right" 
-                    wrapperStyle={{ paddingBottom: '12px', fontSize: '11px' }} 
-                  />
-                  <Area 
-                    yAxisId="left" 
-                    type="monotone" 
-                    dataKey="chickenPriceDzd" 
-                    name="Algerian Live Chicken (DZD/kg)" 
-                    stroke="#4f46e5" 
-                    fill="url(#macroChickenGrad)" 
-                    strokeWidth={2.5} 
-                    connectNulls 
-                  />
-                  <Line 
-                    yAxisId="right" 
-                    type="monotone" 
-                    dataKey="driverPriceUsd" 
-                    name="Soybean Meal Futures (16-Wk Lag, USD/short ton)" 
-                    stroke="#f59e0b" 
-                    strokeWidth={2.5} 
-                    dot={false} 
-                    connectNulls 
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Explanatory Supply Chain Transmission Card */}
-        <Card className="border-border bg-card/60 backdrop-blur-md shadow-xs overflow-hidden">
-          <CardHeader className="pb-3 border-b border-border/60">
-            <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
-              <Info className="text-primary" size={18} />
-              Empirical Transmission Mechanism: Why 16 Weeks Explains 24% of Price Variance
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              Physical supply chain breakdown accounting for the lag between Chicago Board of Trade futures and Algerian farmgate live broiler prices
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* Step 1 */}
-              <div className="p-3.5 rounded-xl border border-border bg-muted/30 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-amber-500 uppercase tracking-wide flex items-center gap-1.5">
-                      <Ship size={14} /> Stage 1: Maritime Transit
-                    </span>
-                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/20">
-                      4 – 5 Weeks
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Bulk cargo vessels load raw soybean meal and pellets at South American grain export hubs (Santos/Paranaguá, Brazil; Rosario, Argentina) and navigate transatlantic shipping routes to Algerian commercial ports (Djendjen, Algiers, Oran).
-                  </p>
-                </div>
-                <div className="mt-3 pt-2 border-t border-border/50 text-[11px] text-zinc-400 flex items-center gap-1">
-                  <ArrowRight size={12} className="text-primary" /> Transatlantic voyage & port anchoring
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="p-3.5 rounded-xl border border-border bg-muted/30 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-indigo-500 uppercase tracking-wide flex items-center gap-1.5">
-                      <Clock size={14} /> Stage 2: Customs & Industrial Milling
-                    </span>
-                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">
-                      2 – 3 Weeks
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Port discharge, phytosanitary inspection, customs clearance, and road transport to regional feed mills. Meal is extruded, compounded into balanced broiler feed rations (starter/grower/finisher), and distributed to local poultry producers.
-                  </p>
-                </div>
-                <div className="mt-3 pt-2 border-t border-border/50 text-[11px] text-zinc-400 flex items-center gap-1">
-                  <ArrowRight size={12} className="text-primary" /> Quality controls, compounding & delivery
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="p-3.5 rounded-xl border border-border bg-muted/30 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-wide flex items-center gap-1.5">
-                      <CheckCircle2 size={14} /> Stage 3: Incubation & Flock Grow-Out
-                    </span>
-                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
-                      6 – 8 Weeks
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Hatching egg incubation (~21 days) combined with the broiler grow-out cycle (35 to 45 days) to achieve optimal market weight (2.2 – 2.5 kg). Feed consumed over this period encapsulates the compound cost basis passed to live wholesale markets.
-                  </p>
-                </div>
-                <div className="mt-3 pt-2 border-t border-border/50 text-[11px] text-zinc-400 flex items-center gap-1">
-                  <ArrowRight size={12} className="text-primary" /> Compound transmission: 12 – 16 Weeks
-                </div>
-              </div>
-
-            </div>
-
-            {/* Economic Context Summary */}
-            <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 text-xs text-muted-foreground leading-relaxed flex items-start gap-2.5">
-              <Info size={16} className="text-primary shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold text-foreground">Supply Chain Insight: </span>
-                At zero-lag (instantaneous), global feed prices decouple from Algerian retail quotes ($r \approx 0.23$) due to transit lag and import buffers. Shifting CBOT Soybean Meal forward by 16 weeks aligns peak feed acquisition costs with flock marketing, producing the verified peak correlation ($r = +0.4915, R^2 = 24.16\%$).
-              </div>
             </div>
           </CardContent>
         </Card>
