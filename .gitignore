@@ -34,3 +34,7 @@ dist-ssr
 **/public/workbox-*.js
 **/public/swe-worker-*.js
 .gstack/
+.agents/
+scratch/
+*.tsbuildinfo
+__pycache__/
